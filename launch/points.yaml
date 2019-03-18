@@ -1,0 +1,25 @@
+<launch>
+	<rosparam command="load" file="$(find minau)/params/points.yaml" />
+
+	<node name="point_sim_controller" pkg="minau" type="point_sim_controler.py" output="screen" />
+	
+
+<!-- kipp -->
+	<node ns:='kipp' name="point_planner" pkg="minau" type="point_planner.py" output="screen" />
+
+<!-- tars -->
+	<node ns:='tars' name="point_planner" pkg="minau" type="point_planner.py" output="screen" />
+
+<!-- case -->
+	<node ns:='case' name="point_planner" pkg="minau" type="point_planner.py" output="screen" />
+
+<!-- deckard -->
+	<node ns:='deckard' name="point_planner" pkg="minau" type="point_planner.py" output="screen" />
+	
+<!-- hal -->
+	<node ns:='hal' name="point_planner" pkg="minau" type="point_planner.py" output="screen" />
+
+<!-- ava -->
+	<node ns:='ava' name="point_planner" pkg="minau" type="point_planner.py" output="screen" />
+
+</launch>

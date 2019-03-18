@@ -1,0 +1,40 @@
+# point_sim_controller.py and point_planner.py config file
+
+sim:
+  update_rate_hz: 50
+
+actors_list:
+  - kipp
+  - tars
+  - case
+  - deckard
+  - hal
+  - ava
+
+kipp:
+  planner: linear
+  start_pos:        # either x,y,z, theta or 'random'
+    x: 0
+    y: 0
+    z: 0
+    theta: 0
+
+tars:
+  planner: linear
+  start_pos: random
+
+case:
+  planner: linear
+  start_pos: random
+
+deckard:
+  planner: linear
+  start_pos: random
+
+hal:
+  planner: linear
+  start_pos: random
+
+ava:
+  planner: linear
+  start_pos: random
