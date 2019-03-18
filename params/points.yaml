@@ -2,6 +2,7 @@
 
 sim:
   update_rate_hz: 50
+  
 
 actors_list:
   - kipp
