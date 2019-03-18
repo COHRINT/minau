@@ -1,3 +1,0 @@
-Goals
-- create a config folder for the sim
-- create a launch file
