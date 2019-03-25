@@ -3,7 +3,6 @@
 sim:
   update_rate_hz: 50
   
-
 actors_list:
   - kipp
   - tars
@@ -18,7 +17,7 @@ kipp:
     x: 0
     y: 0
     z: 0
-    theta: 0
+    psi: 0
 
 tars:
   planner: linear

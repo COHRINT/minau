@@ -14,23 +14,24 @@ class PointSim:
         rospy.loginfo("Point Sim and Controller Initialized")
         self.load_auvs()
         
-        self.update_period = 1 / int(rospy.get_param('sim/update_rate_hz'))
-        self.timer = rospy.Timer(rospy.Duration(self.update_period), self.update_callback)
+        self.update_period = 1 / int(rospy.get_param('~update_freq'))
+#        self.timer = rospy.Timer(rospy.Duration(self.update_period), self.update_positions)
 
     def load_auvs(self):
         self.auvs = {} # each auv has an odom
         auv_list = rospy.get_param('actors_list')
         for auv in auv_list:
-            start_odom = Odometry()
-            start_pos = rospy.get_param(auv+'/start_pos')
-            if start_pos == "random":
-                start_odom.pose.pose.position = self.get_random_point()
+            print(auv)
+            # start_odom = Odometry()
+            # start_pos = rospy.get_param(auv+'/start_pos')
+            # if start_pos == "random":
+            #     start_odom.pose.pose.position = self.get_random_point()
 
     def get_random_point(self):
         # returns a random point
         pass
 
-    def update_callback(self, msg):
+    def update_positions(self, msg):
         # loop through all actors, calculate new poses & publish
         for auv in self.auvs:
             pass
