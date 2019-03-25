@@ -1,7 +1,7 @@
 # point_sim_controller.py and point_planner.py config file
 
 sim:
-  update_rate_hz: 50
+  update_freq: 50
   
 actors_list:
   - kipp

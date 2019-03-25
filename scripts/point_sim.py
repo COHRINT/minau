@@ -1,9 +1,10 @@
 #!/usr/bin/env python
+from __future__ import division
 """
 Simulates the movements of points in space
 """
 import rospy
-from __future__ import division
+
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Point, Pose
 import random
@@ -14,7 +15,7 @@ class PointSim:
         rospy.loginfo("Point Sim and Controller Initialized")
         self.load_auvs()
         
-        self.update_period = 1 / int(rospy.get_param('~update_freq'))
+        self.update_period = 1 / int(rospy.get_param('sim/update_freq'))
 #        self.timer = rospy.Timer(rospy.Duration(self.update_period), self.update_positions)
 
     def load_auvs(self):
