@@ -25,7 +25,6 @@ class PointSim:
         self.auvs = {} # each auv has an odom
         auv_list = rospy.get_param('actors_list')
         for auv in auv_list:
-            print(auv)
             start_odom = Odometry()
             start_pos = rospy.get_param(auv+'/start_pos', 'random')
             if start_pos == "random":
@@ -38,7 +37,7 @@ class PointSim:
             start_odom.child_frame_id = auv + '/base_link'
             pub = rospy.Publisher(auv + '/pose_gt', Odometry, queue_size=10)
             self.auvs[auv] = [start_odom, pub]
-            rospy.Subscriber(auv + '/new_vel', Twist, self.control_callback)
+            rospy.Subscriber(auv + '/new_twist', Twist, self.control_callback)
 
     def load_start_pose(self, pose_list):
         pose = Pose()
@@ -61,7 +60,10 @@ class PointSim:
         pose.position.x = random.random() * size + min_point
         pose.position.y = random.random() * size + min_point
         pose.position.z = random.random() * size + min_point
-        yaw = random.random() * np.pi * 2
+        if rospy.get_param('sim/random_yaw'):
+            yaw = random.random() * np.pi * 2
+        else:
+            yaw = 0
         roll, pitch = 0,0
         quat_list = tf.transformations.quaternion_from_euler(roll, pitch, yaw)
         pose.orientation.x = quat_list[0]
@@ -116,8 +118,8 @@ class PointSim:
             if auv_name in topic:
                 auv = auv_name
                 break
-        self.auvs[auv].twist.twist.linear = msg.linear
-        self.auvs[auv].twist.twist.angular = msg.angular
+        self.auvs[auv][POSE_INDEX].twist.twist.linear = msg.linear
+        self.auvs[auv][POSE_INDEX].twist.twist.angular = msg.angular
 
 def main():
     rospy.init_node('point_sim_contoller')
