@@ -2,6 +2,7 @@
 
 sim:
   update_freq: 50
+  random_pose_min_max: [-100, 100]
   
 actors_list:
   - kipp
@@ -13,8 +14,13 @@ actors_list:
 
 kipp:
   planner: linear
-  start_pos:        # either x,y,z, theta or 'random'
-    x: 0
+  start_pos:        # either x,y,z,psi or 'random'
+    x: 5
+    y: 4
+    z: 3
+    psi: 3.14
+  start_vel:
+    x: 1
     y: 0
     z: 0
     psi: 0
@@ -22,19 +28,24 @@ kipp:
 tars:
   planner: linear
   start_pos: random
+  start_vel: random
 
 case:
   planner: linear
   start_pos: random
+  start_vel: random
 
 deckard:
   planner: linear
   start_pos: random
+  start_vel: random
 
 hal:
   planner: linear
   start_pos: random
+  start_vel: random
 
 ava:
   planner: linear
   start_pos: random
+  start_vel: random

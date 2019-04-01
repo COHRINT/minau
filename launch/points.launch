@@ -7,21 +7,21 @@
 	<node name="point_sim_controller" pkg="cohrint_minau" type="point_sim.py" output="screen" />
 
 <!-- kipp 
-	<node ns:='kipp' name="point_planner" pkg="cohrint_minau" type="point_sm.py" output="screen" /> -->
+	<node ns:='kipp' name="point_planner" pkg="cohrint_minau" type="point_planner.py" output="screen" /> -->
 
 <!-- tars
-	<node ns:='tars' name="point_planner" pkg="cohrint_minau" type="point_sm.py" output="screen" /> -->
+	<node ns:='tars' name="point_planner" pkg="cohrint_minau" type="point_planner.py" output="screen" /> -->
 
 <!-- case 
-	<node ns:='case' name="point_planner" pkg="cohrint_minau" type="point_sm.py" output="screen" /> -->
+	<node ns:='case' name="point_planner" pkg="cohrint_minau" type="point_planner.py" output="screen" /> -->
 
 <!-- deckard 
-	<node ns:='deckard' name="point_planner" pkg="cohrint_minau" type="point_sm.py" output="screen" />-->
+	<node ns:='deckard' name="point_planner" pkg="cohrint_minau" type="point_planner.py" output="screen" />-->
 	
 <!-- hal 
-	<node ns:='hal' name="point_planner" pkg="cohrint_minau" type="point_sm.py" output="screen" />-->
+	<node ns:='hal' name="point_planner" pkg="cohrint_minau" type="point_planner.py" output="screen" />-->
 
 <!-- ava 
-	<node ns:='ava' name="point_planner" pkg="cohrint_minau" type="point_sm.py" output="screen" /> -->
+	<node ns:='ava' name="point_planner" pkg="cohrint_minau" type="point_planner.py" output="screen" /> -->
 
 </launch>
