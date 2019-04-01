@@ -3,11 +3,10 @@
 
 ## Files
 ```
-scripts/point_sim_controler.py 
+scripts/point_sim.py 
 ```
-This file takes in an Odometry waypoint goal and simulates the motion of the point as it travels to the odom waypoint goal. Because it abstracts thruster controls, it takes the place of a controler and because it runs the motion simulation, it is also a simulator. It is configurable via params/points.yaml
-
+This file tracks points in space. An object's velcoity is modifiable via Twist msgs on the 'robot-name/new\\_twist' topic. It publishes Odometry msgs to the 'robot-name/pose\\_gt' topic. It is configurable under the sim tag in params/points.yaml.
 ```
 scripts/point_planner.py
 ```
-This file publishes Odometry waypoint goals. It is configurable via params/points.yaml 
+This file publishes Twist msgs to the 'robot-name/new\\_twist' topic. It is configurable via the 'planners' tag and under each robot's configuration tags in the params/points.yaml.
