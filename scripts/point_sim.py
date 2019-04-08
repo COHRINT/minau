@@ -23,7 +23,7 @@ class PointSim:
 
     def load_auvs(self):
         self.auvs = {} # each auv has an odom
-        auv_list = rospy.get_param('actors_list')
+        auv_list = rospy.get_param('/active_auvs')
         for auv in auv_list:
             start_odom = Odometry()
             start_pos = rospy.get_param(auv+'/start_pos', 'random')

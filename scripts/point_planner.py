@@ -33,8 +33,8 @@ class Planner:
 
     
     def get_random_twist(self):
-        [min_twist, max_twist] = rospy.get_param('/planners/random_twist_linear_min_max')
-        [min_ang, max_ang] = rospy.get_param('/planners/random_twist_angular_min_max')
+        [min_twist, max_twist] = rospy.get_param('/planners/random_linear_vel_range')
+        [min_ang, max_ang] = rospy.get_param('/planners/random_angular_vel_range')
         size = max_twist - min_twist
         twist = Twist()
         twist.linear.x = random.random() * size + min_twist

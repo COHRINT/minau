@@ -5,13 +5,15 @@
 	<rosparam command="load" file="$(find cohrint_minau)/params/$(arg config_file)" />
 	
 	<node name="point_sim_controller" pkg="cohrint_minau" type="point_sim.py" output="screen" />
-
-	<node ns='kipp' name="point_planner" pkg="cohrint_minau" type="point_planner.py" output="screen" />
-
-	<node ns='tars' name="point_planner" pkg="cohrint_minau" type="point_planner.py" output="screen" />
-	<node ns='case' name="point_planner" pkg="cohrint_minau" type="point_planner.py" output="screen" />
-	<node ns='deckard' name="point_planner" pkg="cohrint_minau" type="point_planner.py" output="screen"/>
-	<node ns='hal' name="point_planner" pkg="cohrint_minau" type="point_planner.py" output="screen" />
-	<node ns='ava' name="point_planner" pkg="cohrint_minau" type="point_planner.py" output="screen" />
 	
+<group ns="kipp">
+	<node name="point_planner" pkg="cohrint_minau" type="point_planner.py" output="screen" />
+	<node name="sensor_pub" pkg="cohrint_minau" type="publish_sensors.py" output="screen" />
+</group>
+
+<group ns="tars">
+	<node name="point_planner" pkg="cohrint_minau" type="point_planner.py" output="screen" />
+	<node name="sensor_pub" pkg="cohrint_minau" type="publish_sensors.py" output="screen" />
+</group>
+
 </launch>
