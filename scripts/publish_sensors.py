@@ -29,18 +29,30 @@ class SensorPub:
             rospy.Subscriber('/' + rob + '/pose_gt', Odometry, self.pose_callback)
             self.auvs[rob] = None
         self.pose = None
-        rospy.loginfo("Sensor pub for " + name + " initialized")
+
+        # Publishers
         self.depth_pub = rospy.Publisher('depth', Float64, queue_size=10)
-        depth_rate = 1 / float(rospy.get_param('/sensors/depth_pub_rate', 50))
-        self.depth_timer = rospy.Timer(rospy.Duration(depth_rate), self.depth_callback)
-        self.depth_noise = float(rospy.get_param('/sensors/depth_noise', 0.03))
         self.usbl_pub = rospy.Publisher('usbl', Measurement, queue_size=10)
         self.usbl_pos_pub = rospy.Publisher('usbl_pos', Positioning, queue_size=10)
+
+        # Timer callbacks
+        depth_rate = 1 / float(rospy.get_param('/sensors/depth_pub_rate', 50))
         usbl_rate = 1 / float(rospy.get_param('/sensors/usbl_pub_rate', 0.5))
+        self.depth_timer = rospy.Timer(rospy.Duration(depth_rate), self.depth_callback)
         self.usbl_timer = rospy.Timer(rospy.Duration(usbl_rate), self.usbl_callback)
-        depth_res = Decimal(rospy.get_param('/sensors/depth_res', 0.01))
-        self.depth_res = - depth_res.as_tuple().exponent # num decimal places
+
+        # Noise
+        self.noise = bool(rospy.get_param('/sensors/noise',True))
+        self.depth_noise = float(rospy.get_param('/sensors/depth_noise', 0.03))
+        self.angular_noise = float(rospy.get_param('/sensors/angular_noise',1))
+        self.distance_noise = float(rospy.get_param('/sensors/distance_noise', 1.0))
+
+        # Resolutions
+        self.dist_res = int(rospy.get_param('/sensors/distance_res', 1))
+        self.angular_res = int(rospy.get_param('/sensors/angular_res', 1))
+        self.depth_res = int(rospy.get_param('/sensors/depth_res', 2))
         
+        rospy.loginfo("Sensor pub for " + name + " initialized")        
 
     def pose_callback(self, msg):
         topic = msg._connection_header['topic']
@@ -58,39 +70,34 @@ class SensorPub:
         if self.pose == None:
             return
         depth = self.pose.position.z
-        depth_data = Float64()        
+        depth = self.insert_noise(depth, self.depth_noise)
+        depth_data = Float64()
         depth_data.data = round(depth, self.depth_res)
         self.depth_pub.publish(depth_data)
         
     def usbl_callback(self, msg):
-        # loop through auvs
-        # generate distance, heading measurements
-        # publish that
-        # from those measurements calculate the easting, northing and depth relative to world coordinates
-        # publish that
         meas = Measurement()
         for auv in self.auvs:
             if self.auvs[auv] == None or self.pose == None:
                 continue
             meas.name = auv
             dist = self.get_distance(self.pose.position, self.auvs[auv].pose.pose.position)
-            # Insert noise
+            dist = self.insert_noise(dist, self.distance_noise)
             az, elev = self.get_bearing(self.pose,self.auvs[auv].pose.pose.position)
-            # Insert noise
+            az = self.insert_noise(dist, self.angular_noise)
+            elev = self.insert_noise(dist, self.angular_noise)
             rospy.loginfo("Publishing dist to " + auv)       
-            meas.dist = dist
-            meas.azimuth = az
-            meas.elevation = elev
+            meas.dist = round(dist, self.dist_res)
+            meas.azimuth = round(az, self.angular_res)
+            meas.elevation = round(elev, self.angular_res)
             meas.fit_error = 0
             self.usbl_pub.publish(meas)
 
     def insert_noise(self, meas, noise_std):
-        # randomly sample
-        pass
-
-    def round_meas(self, meas, precision):
-        # Trim the measurement to the given precision
-        pass
+        if self.noise:
+            return meas + np.random.normal(0,noise_std)
+        else:
+            return meas
             
     def get_distance(self, point1, point2):
 	"""
@@ -143,7 +150,7 @@ class SensorPub:
 
         # Elevation
         z_diff = point2.z - pose1.position.z
-        z2_old = point2.z
+        z2_old = point2.z         # Store so we can temporarily change p2's z
         point2.z = pose1.position.z
         xy_dist = self.get_distance(point2, pose1.position)
         point2.z = z2_old
