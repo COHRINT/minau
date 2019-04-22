@@ -17,9 +17,10 @@ sensors:
   distance_res: 1       # m (number of decimal points)
   angular_res: 1        # degrees (number of decimal points)
   depth_res: 2          # m (number of decimal points)
-  distance_noise: 1	# m
+  positioning_res: 1    # m (number of decimal points)  
+  distance_noise: 1     # m
   angular_noise: 1      # degrees
-  depth_noise: 0.03	# m
+  depth_noise: 0.03     # m
   
 active_auvs:
   - kipp

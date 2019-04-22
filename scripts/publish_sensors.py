@@ -42,7 +42,7 @@ class SensorPub:
         self.usbl_timer = rospy.Timer(rospy.Duration(usbl_rate), self.usbl_callback)
 
         # Noise
-        self.noise = bool(rospy.get_param('/sensors/noise',True))
+        self.noise = rospy.get_param('/sensors/noise',False)
         self.depth_noise = float(rospy.get_param('/sensors/depth_noise', 0.03))
         self.angular_noise = float(rospy.get_param('/sensors/angular_noise',1))
         self.distance_noise = float(rospy.get_param('/sensors/distance_noise', 1.0))
@@ -51,6 +51,7 @@ class SensorPub:
         self.dist_res = int(rospy.get_param('/sensors/distance_res', 1))
         self.angular_res = int(rospy.get_param('/sensors/angular_res', 1))
         self.depth_res = int(rospy.get_param('/sensors/depth_res', 2))
+        self.pos_res = int(rospy.get_param('/sensors/positioning_res',1))
         
         rospy.loginfo("Sensor pub for " + name + " initialized")        
 
@@ -77,21 +78,42 @@ class SensorPub:
         
     def usbl_callback(self, msg):
         meas = Measurement()
+        pos = Positioning()
         for auv in self.auvs:
             if self.auvs[auv] == None or self.pose == None:
                 continue
+
+            # Measurement
             meas.name = auv
             dist = self.get_distance(self.pose.position, self.auvs[auv].pose.pose.position)
             dist = self.insert_noise(dist, self.distance_noise)
             az, elev = self.get_bearing(self.pose,self.auvs[auv].pose.pose.position)
-            az = self.insert_noise(dist, self.angular_noise)
-            elev = self.insert_noise(dist, self.angular_noise)
-            rospy.loginfo("Publishing dist to " + auv)       
+            az = self.insert_noise(az, self.angular_noise)
+            elev = self.insert_noise(elev, self.angular_noise)
+            # rospy.loginfo("Publishing dist to " + auv)       
             meas.dist = round(dist, self.dist_res)
             meas.azimuth = round(az, self.angular_res)
             meas.elevation = round(elev, self.angular_res)
             meas.fit_error = 0
             self.usbl_pub.publish(meas)
+
+            # Positioning
+            if az > 180:
+                az -= 360
+            pos.name = auv
+            pos.depth = round(np.sin(np.deg2rad(elev)) * dist, self.pos_res)
+            # print(auv + "'s depth: " + str(pos.depth))
+            xy_dist = np.cos(np.deg2rad(elev)) * dist
+            pos.northing = round(np.sin(np.deg2rad(az)) * xy_dist, self.pos_res)
+            pos.easting = round(np.sin(np.deg2rad(az)) * xy_dist, self.pos_res)
+            # print(auv + "'s y: " + str(pos.northing))
+            # print(auv + "'s x: " + str(pos.easting))
+            # self.usbl_pos_pub.publish(pos)
+
+            # print("True")
+            # print(meas)
+            # print(pos)
+            
 
     def insert_noise(self, meas, noise_std):
         if self.noise:
@@ -175,7 +197,7 @@ def test1():
     pose1.orientation.w = 1
     
     pose2 = Pose()
-    pose2.position.z = -11.2394923
+    pose2.position.z = 0
     yaw = 0
     quat_list = tf.transformations.quaternion_from_euler(0,0,yaw)
     pose2.orientation.x = quat_list[0]
@@ -208,7 +230,7 @@ def main():
 
 if __name__ == "__main__":
     try:
-        test1()
-#        main()
+        # test1()
+        main()
     except rospy.ROSInterruptException:
         pass
