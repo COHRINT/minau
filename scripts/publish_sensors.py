@@ -2,7 +2,7 @@
 import rospy
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Float64
-from cohrint_minau.msg import Measurement, Positioning
+from cohrint_minau.msg import Measurement
 from geometry_msgs.msg import Pose
 from decimal import Decimal
 import numpy as np
@@ -33,7 +33,6 @@ class SensorPub:
         # Publishers
         self.depth_pub = rospy.Publisher('depth', Float64, queue_size=10)
         self.usbl_pub = rospy.Publisher('usbl', Measurement, queue_size=10)
-        self.usbl_pos_pub = rospy.Publisher('usbl_pos', Positioning, queue_size=10)
 
         # Timer callbacks
         depth_rate = 1 / float(rospy.get_param('/sensors/depth_pub_rate', 50))
@@ -96,23 +95,6 @@ class SensorPub:
             meas.elevation = round(elev, self.angular_res)
             meas.fit_error = 0
             self.usbl_pub.publish(meas)
-
-            # Positioning
-            if az > 180:
-                az -= 360
-            pos.name = auv
-            pos.depth = round(np.sin(np.deg2rad(elev)) * dist, self.pos_res)
-            # print(auv + "'s depth: " + str(pos.depth))
-            xy_dist = np.cos(np.deg2rad(elev)) * dist
-            pos.northing = round(np.sin(np.deg2rad(az)) * xy_dist, self.pos_res)
-            pos.easting = round(np.sin(np.deg2rad(az)) * xy_dist, self.pos_res)
-            # print(auv + "'s y: " + str(pos.northing))
-            # print(auv + "'s x: " + str(pos.easting))
-            # self.usbl_pos_pub.publish(pos)
-
-            # print("True")
-            # print(meas)
-            # print(pos)
             
 
     def insert_noise(self, meas, noise_std):
