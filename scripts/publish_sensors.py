@@ -10,8 +10,7 @@ import tf
 """
 Publishes
 - depth measurements for current robot
-- range, bearing, and uncertainty measurements for other active robots
-- relative positioning to other robots
+- Measurement.msg for relative positionings to other robots
 
 range: res 0.1m
 azimuth: 0-360 (res 0.1 deg)
