@@ -50,6 +50,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
    FILES
    Measurement.msg
+   Positioning.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -67,10 +68,10 @@ add_message_files(
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-# )
+generate_messages(
+   DEPENDENCIES
+   std_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -105,7 +106,7 @@ catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES cohrint_minau
 #  CATKIN_DEPENDS rospy
-#  DEPENDS system_lib
+   CATKIN_DEPENDS message_runtime
 )
 
 ###########

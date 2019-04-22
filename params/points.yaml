@@ -14,8 +14,11 @@ sensors:
   depth_pub_rate: 50
   usbl_pub_rate: 0.5
   distance_res: 0.1     # m
-  angular_res: 2        # % of distance meas
+  angular_res: 0.1      # degrees
   depth_res: 0.01       # m
+  distance_noise: 1	# m
+  angular_noise: 2      # % of distance meas
+  depth_noise: 0.03	# m
   
 active_auvs:
   - kipp

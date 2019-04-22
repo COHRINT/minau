@@ -3,7 +3,10 @@ import rospy
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Float64
 from cohrint_minau.msg import Measurement, Positioning
+from geometry_msgs.msg import Pose
 from decimal import Decimal
+import numpy as np
+import tf
 """
 Publishes
 - depth measurements for current robot
@@ -28,14 +31,14 @@ class SensorPub:
         self.pose = None
         rospy.loginfo("Sensor pub for " + name + " initialized")
         self.depth_pub = rospy.Publisher('depth', Float64, queue_size=10)
-        depth_rate = 1 / float(rospy.get_param('/sensors/depth_pub_rate'))
+        depth_rate = 1 / float(rospy.get_param('/sensors/depth_pub_rate', 50))
         self.depth_timer = rospy.Timer(rospy.Duration(depth_rate), self.depth_callback)
-        self.depth_noise = float(rospy.get_param('/sensors/depth_res'))
+        self.depth_noise = float(rospy.get_param('/sensors/depth_noise', 0.03))
         self.usbl_pub = rospy.Publisher('usbl', Measurement, queue_size=10)
         self.usbl_pos_pub = rospy.Publisher('usbl_pos', Positioning, queue_size=10)
-        usbl_rate = 1 / float(rospy.get_param('/sensors/usbl_pub_rate'))
+        usbl_rate = 1 / float(rospy.get_param('/sensors/usbl_pub_rate', 0.5))
         self.usbl_timer = rospy.Timer(rospy.Duration(usbl_rate), self.usbl_callback)
-        depth_res = Decimal(rospy.get_param('/sensors/depth_res'))
+        depth_res = Decimal(rospy.get_param('/sensors/depth_res', 0.01))
         self.depth_res = - depth_res.as_tuple().exponent # num decimal places
         
 
@@ -47,12 +50,14 @@ class SensorPub:
                 auv = auv_name
                 break
         if auv == self.name:
-            self.pose = msg
+            self.pose = msg.pose.pose
         else:
             self.auvs[auv] = msg
 
     def depth_callback(self, msg):
-        depth = self.pose.pose.pose.position.z
+        if self.pose == None:
+            return
+        depth = self.pose.position.z
         depth_data = Float64()        
         depth_data.data = round(depth, self.depth_res)
         self.depth_pub.publish(depth_data)
@@ -63,18 +68,125 @@ class SensorPub:
         # publish that
         # from those measurements calculate the easting, northing and depth relative to world coordinates
         # publish that
+        meas = Measurement()
+        for auv in self.auvs:
+            if self.auvs[auv] == None or self.pose == None:
+                continue
+            meas.name = auv
+            dist = self.get_distance(self.pose.position, self.auvs[auv].pose.pose.position)
+            # Insert noise
+            az, elev = self.get_bearing(self.pose,self.auvs[auv].pose.pose.position)
+            # Insert noise
+            rospy.loginfo("Publishing dist to " + auv)       
+            meas.dist = dist
+            meas.azimuth = az
+            meas.elevation = elev
+            meas.fit_error = 0
+            self.usbl_pub.publish(meas)
+
+    def insert_noise(self, meas, noise_std):
+        # randomly sample
         pass
 
+    def round_meas(self, meas, precision):
+        # Trim the measurement to the given precision
+        pass
+            
     def get_distance(self, point1, point2):
-        pass
-
-    def get_heading(self, pose1, point2):
-        """
-        Heading from pose1 to point2
-        Round to 0.1 degrees resolution
-        """
-        pass
+	"""
+        Returns the distance between 2 points
         
+        Parameters
+        ----------
+        point1 : Point
+        point2 : Point
+
+        Returns
+        -------
+        float64
+            Distance between points
+        """
+        x1, y1, z1 = point1.x, point1.y, point1.z
+        x2, y2, z2 = point2.x, point2.y, point2.z
+        p1_arr = np.array([x1, y1, z1])
+        p2_arr = np.array([x2, y2, z2])
+        diff = p2_arr - p1_arr
+        return np.linalg.norm(diff)
+
+    def get_bearing(self, pose1, point2):
+        """
+        Calculates the elevation and azimuth from a pose to a point in space
+
+        Parameters
+        ----------
+        pose1: Pose
+        point2: Point
+
+        Returns
+        -------
+        azimuth: float64
+            0 to 360 degrees
+        elevation: float64
+            -90 to 90 degrees
+        """
+
+        # Azimuth
+        quat_list = [ pose1.orientation.x, \
+                      pose1.orientation.y, \
+                      pose1.orientation.z, \
+                      pose1.orientation.w]
+        (roll, pitch, yaw) = tf.transformations.euler_from_quaternion(quat_list)
+        azimuth = np.arctan2(point2.x - pose1.position.x, point2.y - pose1.position.y) - np.pi / 2 + yaw
+        
+        if azimuth < 0: # wrap negative angles
+            azimuth += 2*np.pi
+
+        # Elevation
+        z_diff = point2.z - pose1.position.z
+        z2_old = point2.z
+        point2.z = pose1.position.z
+        xy_dist = self.get_distance(point2, pose1.position)
+        point2.z = z2_old
+        elevation = np.arctan2(z_diff, xy_dist)
+
+        # Convert to degrees
+        azimuth = azimuth * 180 / np.pi
+        elevation = elevation * 180 / np.pi
+        # print(azimuth)
+        # print(elevation)
+
+        return azimuth, elevation
+            
+def test1():
+    rospy.init_node('test_sensor_node')
+    # Create 2 poses and check the get bearing function
+
+    pose1 = Pose()
+    pose1.position.x = 1
+    pose1.position.y = 1
+    pose1.position.z = -1.43
+    pose1.orientation.w = 1
+    
+    pose2 = Pose()
+    pose2.position.z = -11.2394923
+    yaw = 0
+    quat_list = tf.transformations.quaternion_from_euler(0,0,yaw)
+    pose2.orientation.x = quat_list[0]
+    pose2.orientation.y = quat_list[1]
+    pose2.orientation.z = quat_list[2]
+    pose2.orientation.w = quat_list[3]
+
+    o1 = Odometry()
+    o1.pose.pose = pose1
+    o2 = Odometry()
+    o2.pose.pose = pose2
+
+    sp = SensorPub('rob', ['rob','bob'])
+    sp.auvs['bob'] = o1
+    sp.pose = o2.pose.pose
+    # sp.get_distance(pose1.position, pose2.position)
+    # sp.get_bearing(pose2, pose1.position)
+    rospy.spin()
 
 def main():
     rospy.init_node('sensor_pub', anonymous=True)
@@ -89,7 +201,7 @@ def main():
 
 if __name__ == "__main__":
     try:
-        main()
+        test1()
+#        main()
     except rospy.ROSInterruptException:
         pass
-        
