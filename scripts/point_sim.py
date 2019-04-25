@@ -10,7 +10,7 @@ from geometry_msgs.msg import Point, Pose, TwistStamped
 import random
 import tf
 
-POSE_INDEX = 0
+ODOM_INDEX = 0
 PUB_INDEX = 1
 
 class PointSim:
@@ -74,7 +74,7 @@ class PointSim:
 
     def update_poses(self, msg):
         for auv in self.auvs:
-            odom = self.auvs[auv][POSE_INDEX]
+            odom = self.auvs[auv][ODOM_INDEX]
             roll, pitch, yaw = tf.transformations.euler_from_quaternion(( odom.pose.pose.orientation.x, \
                                                                           odom.pose.pose.orientation.y, \
                                                                           odom.pose.pose.orientation.z, \
@@ -99,7 +99,7 @@ class PointSim:
 
             odom.header.stamp = rospy.get_rostime()
 
-            self.auvs[auv][POSE_INDEX] = odom
+            self.auvs[auv][ODOM_INDEX] = odom
             self.auvs[auv][PUB_INDEX].publish(odom)
 
     def correct_angles(self, angle):
@@ -118,8 +118,17 @@ class PointSim:
             if auv_name in topic:
                 auv = auv_name
                 break
-        self.auvs[auv][POSE_INDEX].twist.twist.linear = msg.twist.linear
-        self.auvs[auv][POSE_INDEX].twist.twist.angular = msg.twist.angular
+
+        """ According to nav_msgs.msg/Odometry standards, the pose is given in header/frame_id and the twist is given in child_frame_id
+        """
+        self.auvs[auv][ODOM_INDEX].child_frame_id = msg.header.frame_id
+        self.auvs[auv][ODOM_INDEX].header = msg.header        
+        self.auvs[auv][ODOM_INDEX].header.frame_id = 'world'
+        self.auvs[auv][ODOM_INDEX].twist.twist.linear = msg.twist.linear
+        self.auvs[auv][ODOM_INDEX].twist.twist.angular = msg.twist.angular
+        rospy.loginfo(self.auvs[auv][ODOM_INDEX])
+
+        # Republish the new transform msg.header.frame_id -> world
 
 def main():
     rospy.init_node('point_sim_contoller')
