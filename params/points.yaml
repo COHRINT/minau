@@ -35,8 +35,8 @@ kipp:
   start_pos:           # either x,y,z,psi or 'random'
     x: 0
     y: 0
-    z: 0
-    psi: 0
+    z: 1
+    psi: 1.57
   start_twist:
     x: 0.1
     y: 0.0

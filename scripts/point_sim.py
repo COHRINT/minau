@@ -6,7 +6,7 @@ Simulates the movements of points in space
 import rospy
 import numpy as np
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import Point, Pose, Twist
+from geometry_msgs.msg import Point, Pose, TwistStamped
 import random
 import tf
 
@@ -37,7 +37,7 @@ class PointSim:
             start_odom.child_frame_id = auv + '/base_link'
             pub = rospy.Publisher(auv + '/pose_gt', Odometry, queue_size=10)
             self.auvs[auv] = [start_odom, pub]
-            rospy.Subscriber(auv + '/new_twist', Twist, self.control_callback)
+            rospy.Subscriber(auv + '/new_twist', TwistStamped, self.control_callback)
 
     def load_start_pose(self, pose_list):
         pose = Pose()
@@ -118,8 +118,8 @@ class PointSim:
             if auv_name in topic:
                 auv = auv_name
                 break
-        self.auvs[auv][POSE_INDEX].twist.twist.linear = msg.linear
-        self.auvs[auv][POSE_INDEX].twist.twist.angular = msg.angular
+        self.auvs[auv][POSE_INDEX].twist.twist.linear = msg.twist.linear
+        self.auvs[auv][POSE_INDEX].twist.twist.angular = msg.twist.angular
 
 def main():
     rospy.init_node('point_sim_contoller')
