@@ -33,20 +33,28 @@ active_auvs:
 kipp:
   planner: linear
   start_pos:           # either x,y,z,psi or 'random'
-    x: 5
-    y: 4
-    z: 3
-    psi: 3.14
+    x: 0
+    y: 0
+    z: 0
+    psi: 0
   start_twist:
-    x: 1
-    y: 1
-    z: -1
+    x: 0.1
+    y: 0.0
+    z: 0
     psi: 0
 
 tars:
   planner: linear
-  start_pos: random
-  start_twist: random
+  start_pos:           # either x,y,z,psi or 'random'
+    x: 0
+    y: 0
+    z: 0
+    psi: 0
+  start_twist:
+    x: 0.0
+    y: 0.0
+    z: 0
+    psi: 0
 
 case:
   planner: linear

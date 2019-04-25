@@ -2,7 +2,7 @@
 import rospy
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Float64
-from cohrint_minau.msg import Measurement
+from cohrint_minau.msg import depthMeasurement, usblMeasurement
 from geometry_msgs.msg import Pose
 from decimal import Decimal
 import numpy as np
@@ -30,8 +30,8 @@ class SensorPub:
         self.pose = None
 
         # Publishers
-        self.depth_pub = rospy.Publisher('depth', Float64, queue_size=10)
-        self.usbl_pub = rospy.Publisher('usbl', Measurement, queue_size=10)
+        self.depth_pub = rospy.Publisher('depth', depthMeasurement, queue_size=10)
+        self.usbl_pub = rospy.Publisher('usbl', usblMeasurement, queue_size=10)
 
         # Timer callbacks
         depth_rate = 1 / float(rospy.get_param('/sensors/depth_pub_rate', 50))
@@ -51,7 +51,9 @@ class SensorPub:
         self.depth_res = int(rospy.get_param('/sensors/depth_res', 2))
         self.pos_res = int(rospy.get_param('/sensors/positioning_res',1))
         
-        rospy.loginfo("Sensor pub for " + name + " initialized")        
+        rospy.loginfo("Sensor pub for " + name + " initialized")
+        self.depthSeq = 0
+        self.usblSeq = 0
 
     def pose_callback(self, msg):
         topic = msg._connection_header['topic']
@@ -70,31 +72,37 @@ class SensorPub:
             return
         depth = self.pose.position.z
         depth = self.insert_noise(depth, self.depth_noise)
-        depth_data = Float64()
-        depth_data.data = round(depth, self.depth_res)
-        self.depth_pub.publish(depth_data)
+        meas = depthMeasurement()
+        meas.data = round(depth, self.depth_res)
+        meas.header.seq = self.depthSeq
+        meas.header.stamp = rospy.Time.now()
+        # meas.header.frame_id = TODO proper reference frame
+        self.depth_pub.publish(meas)
+        self.depthSeq += 1
         
     def usbl_callback(self, msg):
-        meas = Measurement()
-        pos = Positioning()
+        meas = usblMeasurement()
         for auv in self.auvs:
             if self.auvs[auv] == None or self.pose == None:
                 continue
 
             # Measurement
-            meas.name = auv
-            dist = self.get_distance(self.pose.position, self.auvs[auv].pose.pose.position)
-            dist = self.insert_noise(dist, self.distance_noise)
+            meas.header.seq = self.usblSeq
+            meas.header.stamp = rospy.Time.now()
+            # meas.header.frame_id = TODO proper reference frame
+            meas.robot_measured = auv
+            _range = self.get_distance(self.pose.position, self.auvs[auv].pose.pose.position)
+            _range = self.insert_noise(_range, self.distance_noise)
             az, elev = self.get_bearing(self.pose,self.auvs[auv].pose.pose.position)
             az = self.insert_noise(az, self.angular_noise)
             elev = self.insert_noise(elev, self.angular_noise)
             # rospy.loginfo("Publishing dist to " + auv)       
-            meas.dist = round(dist, self.dist_res)
+            meas.range = round(_range, self.dist_res)
             meas.azimuth = round(az, self.angular_res)
             meas.elevation = round(elev, self.angular_res)
             meas.fit_error = 0
             self.usbl_pub.publish(meas)
-            
+            self.usblSeq += 1            
 
     def insert_noise(self, meas, noise_std):
         if self.noise:
