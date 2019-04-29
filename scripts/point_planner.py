@@ -2,14 +2,14 @@
 from __future__ import division
 import rospy
 import random
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import TwistStamped
 import numpy as np
 
 class Planner:
 
     def __init__(self, name, update_period):
         self.name = name
-        self.pub = rospy.Publisher('new_twist', Twist, queue_size=10)
+        self.pub = rospy.Publisher('new_twist', TwistStamped, queue_size=10)
         self.planner = rospy.get_param('planner')
         start_twist = rospy.get_param('start_twist')
         if start_twist == 'random':
@@ -18,30 +18,31 @@ class Planner:
             self.twist = self.load_twist_dict(start_twist)
         rospy.Timer(rospy.Duration(update_period), self.pub_cmd)
         rospy.loginfo(name + " Planner Initialized.")
+        self.seq = 0
         
     def load_twist_dict(self, twist_dict):
         dot_x = twist_dict['x']
         dot_y = twist_dict['y']
         dot_z = twist_dict['z']
         dot_psi = twist_dict['psi']
-        twist = Twist()
-        twist.linear.x = dot_x
-        twist.linear.y = dot_y
-        twist.linear.z = dot_z
-        twist.angular.z = dot_psi
+        twist = TwistStamped()
+        twist.twist.linear.x = dot_x
+        twist.twist.linear.y = dot_y
+        twist.twist.linear.z = dot_z
+        twist.twist.angular.z = dot_psi
         return twist
 
     
     def get_random_twist(self):
-        [min_twist, max_twist] = rospy.get_param('/planners/random_twist_linear_min_max')
-        [min_ang, max_ang] = rospy.get_param('/planners/random_twist_angular_min_max')
+        [min_twist, max_twist] = rospy.get_param('/planners/random_linear_vel_range')
+        [min_ang, max_ang] = rospy.get_param('/planners/random_angular_vel_range')
         size = max_twist - min_twist
-        twist = Twist()
-        twist.linear.x = random.random() * size + min_twist
-        twist.linear.y = random.random() * size + min_twist
-        twist.linear.z = random.random() * size + min_twist
+        twist = TwistStamped()
+        twist.twist.linear.x = random.random() * size + min_twist
+        twist.twist.linear.y = random.random() * size + min_twist
+        twist.twist.linear.z = random.random() * size + min_twist
         size_ang = max_ang - min_ang
-        twist.angular.z = random.random() * size_ang + min_ang
+        twist.twist.angular.z = random.random() * size_ang + min_ang
         return twist
         
     def pub_cmd(self, msg):
@@ -50,9 +51,14 @@ class Planner:
             new_twist = self.twist
         else:
             self.twist = new_twist
+        new_twist.header.seq = self.seq
+        new_twist.header.stamp = rospy.Time.now()
+        new_twist.header.frame_id = self.name + "/base_link"
         self.pub.publish(new_twist)
+        self.seq += 1
 
     def get_new_twist(self):
+        """ This function provides an easy place to add more complex planners  that actively change the velocity """
         if self.planner == "linear":
             return None
 
