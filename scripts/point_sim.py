@@ -20,6 +20,8 @@ class PointSim:
         self.load_auvs()
         self.update_period = 1 / int(rospy.get_param('sim/update_freq'))
         self.timer = rospy.Timer(rospy.Duration(self.update_period), self.update_poses)
+        self.listener = tf.TransformListener()
+        self.transformBroadcaster = tf.TransformBroadcaster()
 
     def load_auvs(self):
         self.auvs = {} # each auv has an odom
@@ -102,6 +104,14 @@ class PointSim:
             self.auvs[auv][ODOM_INDEX] = odom
             self.auvs[auv][PUB_INDEX].publish(odom)
 
+            pose = PoseStamped()
+            pose.header.frame_id = odom.child_frame_id
+            subs_pose = self.listener.transformPose('/world', pose)
+            print("Transformed Pose:")
+            rospy.loginfo(subs_pose)
+            print("Actual Pose:")
+            rospy.loginfo(odom.pose.pose)
+
     def correct_angles(self, angle):
         """ Map all angles between -pi to pi """
         while angle < -np.pi or angle > np.pi:
@@ -126,9 +136,18 @@ class PointSim:
         self.auvs[auv][ODOM_INDEX].header.frame_id = 'world'
         self.auvs[auv][ODOM_INDEX].twist.twist.linear = msg.twist.linear
         self.auvs[auv][ODOM_INDEX].twist.twist.angular = msg.twist.angular
-        rospy.loginfo(self.auvs[auv][ODOM_INDEX])
+        # rospy.loginfo(self.auvs[auv][ODOM_INDEX])
 
-        # Republish the new transform msg.header.frame_id -> world
+        # Republish the new transform msg.header.frame_id -> worldxb
+        quat_list = [ self.auvs[auv][ODOM_INDEX].pose.pose.orientation.x, \
+                      self.auvs[auv][ODOM_INDEX].pose.pose.orientation.y, \
+                      self.auvs[auv][ODOM_INDEX].pose.pose.orientation.z, \
+                      self.auvs[auv][ODOM_INDEX].pose.pose.orientation.w ]
+        pos_list = [ self.auvs[auv][ODOM_INDEX].pose.pose.position.x, \
+                     self.auvs[auv][ODOM_INDEX].pose.pose.position.y, \
+                     self.auvs[auv][ODOM_INDEX].pose.pose.position.z, ]
+                      
+        self.transformBroadcaster.sendTransform(pos_list, quat_list, msg.header.stamp, self.auvs[auv][ODOM_INDEX].child_frame_id, "world")
 
 def main():
     rospy.init_node('point_sim_contoller')

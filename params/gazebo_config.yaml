@@ -1,0 +1,79 @@
+active_auvs:
+  - bluerov2_0
+  - bluerov2_1
+  - bluerov2_2
+  - bluerov2_3
+  # - bluerov2_4
+  # - bluerov2_5
+  # - bluerov2_6
+  # - bluerov2_7
+
+planners:
+  update_freq: 1
+  random_linear_vel_range: [-1,1]
+  random_angular_vel_range: [-0.0,0.0]
+  starting_position_thresh: 0.1           # Threshold for robot being in its starting position before beginning its planner
+
+bluerov2_0:
+  planner: linear
+  start_twist:            # world NED frame
+   x: -0.0707              # m/s
+   y: -0.0707
+   z: 0
+   psi: 225.0             # absolute degrees. Unlike x,y,z twists, we're setting positional heading directly
+
+bluerov2_1:
+  planner: linear
+  start_twist:          # world NED frame
+   x: 0.0707              # m/s
+   y: 0.0707
+   z: 0
+   psi: 45.0             # absolute degrees. Unlike x,y,z twists, we're setting positional heading directly
+
+bluerov2_2:
+  planner: linear
+  start_twist:
+    x: 0.0707
+    y: -0.0707
+    z: 0
+    psi: 315.0
+
+bluerov2_3:
+  planner: linear
+  start_twist:
+    x: -0.0707
+    y: 0.0707
+    z: 0
+    psi: 135.0
+
+bluerov2_4:
+  planner: linear
+  start_twist:
+    x: 0.0
+    y: -0.05
+    z: 0
+    psi: 270.0
+
+bluerov2_5:
+  planner: linear
+  start_twist:
+    x: 0.0
+    y: 0.05
+    z: 0
+    psi: 90
+
+bluerov2_6:
+  planner: linear
+  start_twist:
+    x: 0.05
+    y: 0.0
+    z: 0
+    psi: 0
+
+bluerov2_7:
+  planner: linear
+  start_twist:
+    x: -0.05
+    y: 0.0
+    z: 0
+    psi: 180
