@@ -51,6 +51,8 @@ add_message_files(
    FILES
    usblMeasurement.msg
    depthMeasurement.msg
+   AgentMeasurement.msg
+   AgentState.msg
 )
 
 ## Generate services in the 'srv' folder

@@ -21,6 +21,9 @@ bluerov2_0:
    y: -0.0707
    z: 0
    psi: 225.0             # absolute degrees. Unlike x,y,z twists, we're setting positional heading directly
+  comm_drop_prob: 0
+  connections: ['bluerov2_1']
+  agent_update_rate: 1.0
 
 bluerov2_1:
   planner: linear
@@ -29,6 +32,9 @@ bluerov2_1:
    y: 0.0707
    z: 0
    psi: 45.0             # absolute degrees. Unlike x,y,z twists, we're setting positional heading directly
+  comm_drop_prob: 0
+  connections: ['bluerov2_0', 'bluerov2_2', 'bluerov2_3']
+  agent_update_rate: 1.0
 
 bluerov2_2:
   planner: linear
@@ -37,6 +43,9 @@ bluerov2_2:
     y: -0.0707
     z: 0
     psi: 315.0
+  comm_drop_prob: 0
+  connections: ['bluerov2_1']
+  agent_update_rate: 1.0
 
 bluerov2_3:
   planner: linear
@@ -45,6 +54,9 @@ bluerov2_3:
     y: 0.0707
     z: 0
     psi: 135.0
+  comm_drop_prob: 0
+  connections: ['bluerov2_1']
+  agent_update_rate: 1.0
 
 bluerov2_4:
   planner: linear
