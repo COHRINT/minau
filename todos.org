@@ -1,8 +1,0 @@
-* TODO Add some sort of starting depth
-  start_position:       # world frame
-   x: 0                 # m
-   y: 0
-   z: 0
-   psi: 0               # degrees
-* TODO Add capability for more complex movements than straight and circle
-* TODO Add relative velocity commands -> going in circles very easy

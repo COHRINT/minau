@@ -29,6 +29,8 @@ class AgentWrapper(object):
 
         # set update rate
         # self.update_rate = cfg['update_rate']
+        self.agent_name = rospy.get_namespace()
+        self.agent_id = rospy.get_param('agent_id')
         self.update_rate = rospy.get_param('agent_update_rate')
         rate = rospy.Rate(self.update_rate)
 
@@ -123,8 +125,8 @@ class AgentWrapper(object):
         new_msg = AgentMeasurement()
 
         new_msg.type = msg._type.split('/')[1]
-
         new_msg.header.stamp = rospy.Time.now()
+        new_msg.src = self.agent_id
 
         if msg._type == 'cohrint_minau/usblMeasurement':
             new_msg.data = [msg.range, msg.azimuth, msg.elevation]

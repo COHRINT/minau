@@ -7,9 +7,16 @@
 
   <node pkg="tf" type="static_transform_publisher" name="world_map_transform_pub" args="0 0 0 0 0 0 world map 100"/>
 
+  <include file="$(find minau)/launch/divewell.launch">
+    <arg name="paused" value="true"/>
+  </include>
+
+<!--
   <include file="$(find uuv_gazebo_worlds)/launch/ocean_waves.launch">
     <arg name="paused" value="true"/>
   </include>
+
+-->
 
   <!-- Spawn BlueROV2 model in the simulated environment -->
   <include file="$(find minau)/launch/bluerov2.launch">
