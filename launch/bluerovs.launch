@@ -1,0 +1,144 @@
+<launch>
+  <arg name="ardusub_params" default="$(find minau)/config/ardusub_sitl_gps.param"/>
+  
+  <!-- Start Gazebo Simulator with open ocean world -->
+  <arg name="latitude" default="56.71897669633431"/>
+  <arg name="longitude" default="3.515625"/>
+
+  <node pkg="tf" type="static_transform_publisher" name="world_map_transform_pub" args="0 0 0 0 0 0 world map 100"/>
+
+  <include file="$(find minau)/launch/divewell.launch">
+    <arg name="paused" value="true"/>
+  </include>
+
+<!--
+  <include file="$(find uuv_gazebo_worlds)/launch/ocean_waves.launch">
+    <arg name="paused" value="true"/>
+  </include>
+
+-->
+
+  <!-- Spawn BlueROV2 model in the simulated environment -->
+  <include file="$(find minau)/launch/bluerov2.launch">
+    <arg name="sitl" value="true"/>
+    <arg name="instance" value="0"/>
+    <arg name="ardusub_params" value="$(arg ardusub_params)"/>
+    <arg name="latitude" value="$(arg latitude)"/>
+    <arg name="longitude" value="$(arg longitude)"/>
+    <!-- The following arguments must be set w.r.t. NED world frame -->
+    <arg name="x" value="-0.5"/>
+    <arg name="y" value="-0.5"/>
+    <arg name="z" value="0.0"/>
+    <arg name="roll" value="0.0"/>
+    <arg name="pitch" value="0.0"/>
+    <arg name="yaw" value="0.0"/>
+  </include>
+
+  <include file="$(find minau)/launch/bluerov2.launch">
+    <arg name="sitl" value="true"/>
+    <arg name="instance" value="1"/>
+    <arg name="ardusub_params" value="$(arg ardusub_params)"/>
+    <arg name="latitude" value="$(arg latitude)"/>
+    <arg name="longitude" value="$(arg longitude)"/>
+    <!-- The following arguments must be set w.r.t. NED world frame -->
+    <arg name="x" value="0.5"/>
+    <arg name="y" value="0.5"/>
+    <arg name="z" value="0.0"/>
+    <arg name="roll" value="0.0"/>
+    <arg name="pitch" value="0.0"/>
+    <arg name="yaw" value="0.0"/>
+  </include>
+
+  <!-- Spawn BlueROV2 model in the simulated environment -->
+  <include file="$(find minau)/launch/bluerov2.launch">
+    <arg name="sitl" value="true"/>
+    <arg name="instance" value="2"/>
+    <arg name="ardusub_params" value="$(arg ardusub_params)"/>
+    <arg name="latitude" value="$(arg latitude)"/>
+    <arg name="longitude" value="$(arg longitude)"/>
+    <!-- The following arguments must be set w.r.t. NED world frame -->
+    <arg name="x" value="0.5"/>
+    <arg name="y" value="-0.5"/>
+    <arg name="z" value="0.0"/>
+    <arg name="roll" value="0.0"/>
+    <arg name="pitch" value="0.0"/>
+    <arg name="yaw" value="0.0"/>
+  </include>
+
+  <include file="$(find minau)/launch/bluerov2.launch">
+    <arg name="sitl" value="true"/>
+    <arg name="instance" value="3"/>
+    <arg name="ardusub_params" value="$(arg ardusub_params)"/>
+    <arg name="latitude" value="$(arg latitude)"/>
+    <arg name="longitude" value="$(arg longitude)"/>
+    <!-- The following arguments must be set w.r.t. NED world frame -->
+    <arg name="x" value="-0.5"/>
+    <arg name="y" value="0.5"/>
+    <arg name="z" value="0.0"/>
+    <arg name="roll" value="0.0"/>
+    <arg name="pitch" value="0.0"/>
+    <arg name="yaw" value="0.0"/>
+  </include>
+
+<!--
+
+  <include file="$(find minau)/launch/bluerov2.launch">
+    <arg name="sitl" value="true"/>
+    <arg name="instance" value="4"/>
+    <arg name="ardusub_params" value="$(arg ardusub_params)"/>
+    <arg name="latitude" value="$(arg latitude)"/>
+    <arg name="longitude" value="$(arg longitude)"/>
+    <arg name="x" value="0.0"/>
+    <arg name="y" value="-1.0"/>
+    <arg name="z" value="0.0"/>
+    <arg name="roll" value="0.0"/>
+    <arg name="pitch" value="0.0"/>
+    <arg name="yaw" value="0.0"/>
+  </include>
+
+  <include file="$(find minau)/launch/bluerov2.launch">
+    <arg name="sitl" value="true"/>
+    <arg name="instance" value="5"/>
+    <arg name="ardusub_params" value="$(arg ardusub_params)"/>
+    <arg name="latitude" value="$(arg latitude)"/>
+    <arg name="longitude" value="$(arg longitude)"/>
+    <arg name="x" value="0.0"/>
+    <arg name="y" value="1.0"/>
+    <arg name="z" value="0.0"/>
+    <arg name="roll" value="0.0"/>
+    <arg name="pitch" value="0.0"/>
+    <arg name="yaw" value="0.0"/>
+  </include>
+
+  <include file="$(find minau)/launch/bluerov2.launch">
+    <arg name="sitl" value="true"/>
+    <arg name="instance" value="6"/>
+    <arg name="ardusub_params" value="$(arg ardusub_params)"/>
+    <arg name="latitude" value="$(arg latitude)"/>
+    <arg name="longitude" value="$(arg longitude)"/>
+    <arg name="x" value="1"/>
+    <arg name="y" value="0"/>
+    <arg name="z" value="0.0"/>
+    <arg name="roll" value="0.0"/>
+    <arg name="pitch" value="0.0"/>
+    <arg name="yaw" value="0.0"/>
+  </include>
+
+  <include file="$(find minau)/launch/bluerov2.launch">
+    <arg name="sitl" value="true"/>
+    <arg name="instance" value="7"/>
+    <arg name="ardusub_params" value="$(arg ardusub_params)"/>
+    <arg name="latitude" value="$(arg latitude)"/>
+    <arg name="longitude" value="$(arg longitude)"/>
+    <arg name="x" value="-1.0"/>
+    <arg name="y" value="0.0"/>
+    <arg name="z" value="0.0"/>
+    <arg name="roll" value="0.0"/>
+    <arg name="pitch" value="0.0"/>
+    <arg name="yaw" value="0.0"/>
+  </include>
+
+-->
+
+</launch>
+

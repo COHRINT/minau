@@ -1,0 +1,60 @@
+<launch>
+	<arg name="sim_config_file" default="gazebo_config.yaml" />
+	<arg name="sensor_config_file" default="sensors.yaml" />
+
+	<rosparam command="load" file="$(find cohrint_minau)/params/$(arg sim_config_file)" />
+	<rosparam command="load" file="$(find cohrint_minau)/params/$(arg sensor_config_file)" />
+
+<group ns="bluerov2_0">
+	<node name="planner0" pkg="cohrint_minau" type="planner.py" output="screen" />
+	<node name="sensor_pub" pkg="cohrint_minau" type="publish_sensors.py" output="screen" />
+	<node name="comms_module" pkg="cohrint_minau" type="comms.py" />
+	<node name="agent" pkg="cohrint_minau" type="agent_wrapper.py" />
+</group>
+
+<group ns="bluerov2_1">
+	<node name="planner1" pkg="cohrint_minau" type="planner.py" output="screen" />
+	<node name="sensor_pub" pkg="cohrint_minau" type="publish_sensors.py" output="screen" />
+	<node name="comms_module" pkg="cohrint_minau" type="comms.py" />
+	<node name="agent" pkg="cohrint_minau" type="agent_wrapper.py" />	
+</group>
+
+<group ns="bluerov2_2">
+	<node name="planner2" pkg="cohrint_minau" type="planner.py" output="screen" />
+	<node name="sensor_pub" pkg="cohrint_minau" type="publish_sensors.py" output="screen" />
+	<node name="comms_module" pkg="cohrint_minau" type="comms.py" />
+	<node name="agent" pkg="cohrint_minau" type="agent_wrapper.py" />	
+</group>
+
+<group ns="bluerov2_3">
+	<node name="planner3" pkg="cohrint_minau" type="planner.py" output="screen" />
+	<node name="sensor_pub" pkg="cohrint_minau" type="publish_sensors.py" output="screen" />
+	<node name="comms_module" pkg="cohrint_minau" type="comms.py" />
+	<node name="agent" pkg="cohrint_minau" type="agent_wrapper.py" />	
+</group>
+
+<!--
+
+<group ns="bluerov2_4">
+	<node name="planner4" pkg="cohrint_minau" type="planner.py" output="screen" />
+	<node name="sensor_pub" pkg="cohrint_minau" type="publish_sensors.py" output="screen" />
+</group>
+
+<group ns="bluerov2_5">
+	<node name="planner5" pkg="cohrint_minau" type="planner.py" output="screen" />
+	<node name="sensor_pub" pkg="cohrint_minau" type="publish_sensors.py" output="screen" />
+</group>
+
+<group ns="bluerov2_6">
+	<node name="planner5" pkg="cohrint_minau" type="planner.py" output="screen" />
+	<node name="sensor_pub" pkg="cohrint_minau" type="publish_sensors.py" output="screen" />
+</group>
+
+<group ns="bluerov2_7">
+	<node name="planner5" pkg="cohrint_minau" type="planner.py" output="screen" />
+	<node name="sensor_pub" pkg="cohrint_minau" type="publish_sensors.py" output="screen" />
+</group>
+
+-->
+
+</launch>

@@ -1,8 +1,7 @@
 <launch>
 	<arg name="config_file" default="points.yaml" />
 
-	<node pkg="tf" type="static_transform_publisher" name="leviathan_depth_odom_broadcaster"
-args="0 0 0 0 0 0 world map 100"/>
+	<node pkg="tf" type="static_transform_publisher" name="world_map_transform_pub" args="0 0 0 0 0 0 world map 100"/>
 	
 	<rosparam command="load" file="$(find cohrint_minau)/params/$(arg config_file)" />
 	

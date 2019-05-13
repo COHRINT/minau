@@ -9,18 +9,6 @@ planners:
   update_freq: 50
   random_linear_vel_range: [-1,1]
   random_angular_vel_range: [-0.0,0.0]
-
-sensors:
-  noise: true           # bool
-  depth_pub_rate: 50
-  usbl_pub_rate: 0.5
-  distance_res: 1       # m (number of decimal points)
-  angular_res: 1        # degrees (number of decimal points)
-  depth_res: 2          # m (number of decimal points)
-  positioning_res: 1    # m (number of decimal points)  
-  distance_noise: 1     # m
-  angular_noise: 1      # degrees
-  depth_noise: 0.03     # m
   
 active_auvs:
   - kipp
@@ -34,14 +22,14 @@ kipp:
   planner: linear
   start_pos:           # either x,y,z,psi or 'random'
     x: 0
-    y: 0
+    y: 1
     z: 1
-    psi: 1.57
+    psi: 0
   start_twist:
-    x: 0.1
+    x: 0.3
     y: 0.0
     z: 0
-    psi: 0
+    psi: 0.3
 
 tars:
   planner: linear
