@@ -1,0 +1,77 @@
+<launch>
+  <arg name="sim_config" default="$(find minau)/config/sim_gps.parm"/>
+
+  <!-- Start Gazebo Simulator with underwater world -->
+  <include file="$(find uuv_gazebo_worlds)/launch/ocean_waves.launch"/>
+
+  <!-- Spawn BlueROV2 model in the simulated environment -->
+  <include file="$(find minau)/launch/bluerov2.launch">
+    <arg name="asset_id" value="0"/>
+    <arg name="ardusub_instance" value="0"/>
+    <arg name="sitl" value="true" />
+    <arg name="ardusub_params" value="$(find minau)/config/ardusub_sitl_gps.parm"/>
+    <arg name="x" value="0.0"/>
+    <arg name="y" value="0.0"/>
+    <arg name="z" value="0.0"/>
+    <arg name="roll" value="0.0"/>
+    <arg name="pitch" value="0.0"/>
+    <arg name="yaw" value="1.570796"/>
+  </include>
+
+  <include file="$(find minau)/launch/bluerov2.launch">
+    <arg name="asset_id" value="1"/>
+    <arg name="ardusub_instance" value="1"/>
+    <arg name="sitl" value="true" />
+    <arg name="ardusub_params" value="$(find minau)/config/ardusub_sitl_gps.parm"/>
+    <arg name="x" value="1.0"/>
+    <arg name="y" value="0.0"/>
+    <arg name="z" value="0.0"/>
+    <arg name="roll" value="0.0"/>
+    <arg name="pitch" value="0.0"/>
+    <arg name="yaw" value="1.570796"/>
+  </include>
+
+<!--  <include file="$(find minau)/launch/bluerov2.launch">
+    <arg name="instance" value="2"/>
+    <arg name="ardusub_params" value="$(find minau)/config/ardusub_sitl_gps.parm"/>
+    <arg name="x" value="2.0"/>
+    <arg name="y" value="0.0"/>
+    <arg name="z" value="0.0"/>
+    <arg name="roll" value="0.0"/>
+    <arg name="pitch" value="0.0"/>
+    <arg name="yaw" value="1.570796"/>
+  </include>
+
+  <include file="$(find minau)/launch/bluerov2.launch">
+    <arg name="instance" value="3"/>
+    <arg name="ardusub_params" value="$(find minau)/config/ardusub_sitl_gps.parm"/>
+    <arg name="x" value="3.0"/>
+    <arg name="y" value="0.0"/>
+    <arg name="z" value="0.0"/>
+    <arg name="roll" value="0.0"/>
+    <arg name="pitch" value="0.0"/>
+    <arg name="yaw" value="1.570796"/>
+  </include>
+
+  <include file="$(find minau)/launch/bluerov2.launch">
+    <arg name="instance" value="4"/>
+    <arg name="ardusub_params" value="$(find minau)/config/ardusub_sitl_gps.parm"/>
+    <arg name="x" value="4.0"/>
+    <arg name="y" value="0.0"/>
+    <arg name="z" value="0.0"/>
+    <arg name="roll" value="0.0"/>
+    <arg name="pitch" value="0.0"/>
+    <arg name="yaw" value="1.570796"/>
+  </include>
+
+  <include file="$(find minau)/launch/bluerov2.launch">
+    <arg name="instance" value="5"/>
+    <arg name="ardusub_params" value="$(find minau)/config/ardusub_sitl_gps.parm"/>
+    <arg name="x" value="5.0"/>
+    <arg name="y" value="0.0"/>
+    <arg name="z" value="0.0"/>
+    <arg name="roll" value="0.0"/>
+    <arg name="pitch" value="0.0"/>
+    <arg name="yaw" value="1.570796"/>
+  </include> -->
+</launch>

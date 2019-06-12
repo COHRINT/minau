@@ -1,13 +1,12 @@
 <launch>
 	<arg name="config_file" default="points.yaml" />
 
-	<node pkg="tf" type="static_transform_publisher" name="leviathan_depth_odom_broadcaster"
-args="0 0 0 0 0 0 world map 100"/>
-	
+	<node pkg="tf" type="static_transform_publisher" name="map_odom_broadcaster" args="0 0 0 0 0 0 world map 100"/>
+
 	<rosparam command="load" file="$(find cohrint_minau)/params/$(arg config_file)" />
-	
+
 	<node name="point_sim_controller" pkg="cohrint_minau" type="point_sim.py" output="screen" />
-	
+
 <group ns="kipp">
 	<node name="point_planner" pkg="cohrint_minau" type="point_planner.py" output="screen" />
 	<node name="sensor_pub" pkg="cohrint_minau" type="publish_sensors.py" output="screen" />

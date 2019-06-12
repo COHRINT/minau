@@ -34,14 +34,14 @@ kipp:
   planner: linear
   start_pos:           # either x,y,z,psi or 'random'
     x: 0
-    y: 0
+    y: 1
     z: 1
-    psi: 1.57
+    psi: 0
   start_twist:
-    x: 0.1
+    x: 0.3
     y: 0.0
     z: 0
-    psi: 0
+    psi: 0.3
 
 tars:
   planner: linear
