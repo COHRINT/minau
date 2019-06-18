@@ -135,6 +135,7 @@ class SensorPub:
         self.gpsSeq += 1
 
     def linrel_callback(self,msg):
+        rospy.loginfo("Publishing measurement")
         meas = linrelMeasurement()
         for auv in self.auvs:
             if self.auvs[auv] == None or self.pose == None:

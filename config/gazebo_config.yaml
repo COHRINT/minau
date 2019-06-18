@@ -37,7 +37,7 @@ bluerov2_0:
     psi: 0
   agent_id: 0
   comm_drop_prob: 0.0
-  meas_connections: ['agent_1','agent_2']
+  meas_connections: ['bluerov2_1','bluerov2_2']
   agent_update_rate: 5 # [Hz]
 
 bluerov2_1:
@@ -49,7 +49,7 @@ bluerov2_1:
     psi: 0
   agent_id: 0
   comm_drop_prob: 0.0
-  meas_connections: ['agent_0']
+  meas_connections: ['bluerov2_0']
   agent_update_rate: 5 # [Hz]
 
 bluerov2_2:
@@ -61,7 +61,7 @@ bluerov2_2:
     psi: 0
   agent_id: 0
   comm_drop_prob: 0.0
-  meas_connections: ['agent_0','agent_3']
+  meas_connections: ['bluerov2_0','bluerov2_3']
   agent_update_rate: 5 # [Hz]
 
 bluerov2_3:
@@ -73,5 +73,5 @@ bluerov2_3:
     psi: 0
   agent_id: 0
   comm_drop_prob: 0.0
-  meas_connections: ['agent_2']
+  meas_connections: ['bluerov2_2']
   agent_update_rate: 5 # [Hz]

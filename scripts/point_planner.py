@@ -97,6 +97,7 @@ class Planner:
     def update_auv(self, msg):
         if self.planner == "stopped": # Nothing to do if we're stopped
             return
+        self.twist = self.get_new_twist()
         
         v = Vector3()
         v.x = self.twist.twist.linear.x
@@ -110,6 +111,7 @@ class Planner:
         (roll, pitch, yaw) = tf.transformations.euler_from_quaternion(quat_list)
         heading = yaw + self.twist.twist.angular.z
         self.set_hv(heading, v)
+        self.pub_cmd(None)
         rospy.loginfo("Updating AUV")
         
     def pub_cmd(self, msg):
@@ -127,7 +129,9 @@ class Planner:
     def get_new_twist(self):
         """ This function provides an easy place to add more complex planners  that actively change the velocity """
         if self.planner == "linear":
-            return None
+            return self.twist
+        else:
+            return self.twist
 
 def main():
     rospy.init_node('point_planner', anonymous=True)

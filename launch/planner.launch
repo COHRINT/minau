@@ -1,25 +1,47 @@
 <launch>
 	<arg name="config_file" default="gazebo_config.yaml" />
 	<rosparam command="load" file="$(find cohrint_minau)/config/$(arg config_file)" />
+
+	<arg name="log_level" value="DEBUG" />
 	
 <group ns="bluerov2_0">
 	<node name="point_planner" pkg="cohrint_minau" type="point_planner.py" output="screen" />
 	<node name="sensor_pub" pkg="cohrint_minau" type="publish_sensors.py" output="screen" />
+	<include file="$(find etddf_ros)/launch/agent.launch"> 
+            <arg name="id" value="0" />
+            <arg name="log_level" value="$(arg log_level)" />
+			<arg name="agent_name" value="bluerov2_0" />
+    </include>
 </group>
 
 <group ns="bluerov2_1">
 	<node name="point_planner" pkg="cohrint_minau" type="point_planner.py" output="screen" />
 	<node name="sensor_pub" pkg="cohrint_minau" type="publish_sensors.py" output="screen" />
+	<include file="$(find etddf_ros)/launch/agent.launch"> 
+            <arg name="id" value="1" />
+            <arg name="log_level" value="$(arg log_level)" />
+			<arg name="agent_name" value="bluerov2_1" />
+    </include>
 </group>
 
 <group ns="bluerov2_2">
 	<node name="point_planner" pkg="cohrint_minau" type="point_planner.py" output="screen" />
 	<node name="sensor_pub" pkg="cohrint_minau" type="publish_sensors.py" output="screen" />
+	<include file="$(find etddf_ros)/launch/agent.launch"> 
+            <arg name="id" value="2" />
+            <arg name="log_level" value="$(arg log_level)" />
+			<arg name="agent_name" value="bluerov2_2" />
+    </include>
 </group>
 
 <group ns="bluerov2_3">
 	<node name="point_planner" pkg="cohrint_minau" type="point_planner.py" output="screen" />
 	<node name="sensor_pub" pkg="cohrint_minau" type="publish_sensors.py" output="screen" />
+	<include file="$(find etddf_ros)/launch/agent.launch"> 
+            <arg name="id" value="3" />
+            <arg name="log_level" value="$(arg log_level)" />
+			<arg name="agent_name" value="bluerov2_3" />
+    </include>
 </group>
 
 </launch>
