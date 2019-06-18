@@ -1,0 +1,77 @@
+active_auvs:
+  - bluerov2_0
+  - bluerov2_1
+  - bluerov2_2
+  - bluerov2_3
+  # - bluerov2_4
+  # - bluerov2_5
+  # - bluerov2_6
+
+planners:
+  update_freq: 1
+  random_linear_vel_range: [-1,1]
+  random_angular_vel_range: [-0.0,0.0]
+
+sensors:
+  noise: true           # bool
+  depth_pub_rate: 0.00000001
+  usbl_pub_rate: 0.5
+  distance_res: 1       # m (number of decimal points)
+  angular_res: 1        # degrees (number of decimal points)
+  depth_res: 2          # m (number of decimal points)
+  positioning_res: 1    # m (number of decimal points)  
+  distance_noise: 1     # m
+  angular_noise: 1      # degrees
+  depth_noise: 0.03     # m
+  gps_noise: 1          # m std dev
+  lin_rel_noise: 1.77       # m std dev
+  gps_pub_rate: 5
+  lin_rel_pub_rate: 10
+
+bluerov2_0:
+  planner: linear
+  start_twist:
+    x: 0.1
+    y: 0.0
+    z: 0
+    psi: 0
+  agent_id: 0
+  comm_drop_prob: 0.0
+  meas_connections: ['agent_1','agent_2']
+  agent_update_rate: 5 # [Hz]
+
+bluerov2_1:
+  planner: linear
+  start_twist:
+    x: 0.1
+    y: 0.0
+    z: 0
+    psi: 0
+  agent_id: 0
+  comm_drop_prob: 0.0
+  meas_connections: ['agent_0']
+  agent_update_rate: 5 # [Hz]
+
+bluerov2_2:
+  planner: linear
+  start_twist:
+    x: 0.1
+    y: 0.0
+    z: 0
+    psi: 0
+  agent_id: 0
+  comm_drop_prob: 0.0
+  meas_connections: ['agent_0','agent_3']
+  agent_update_rate: 5 # [Hz]
+
+bluerov2_3:
+  planner: linear
+  start_twist:
+    x: 0.1
+    y: 0.0
+    z: 0
+    psi: 0
+  agent_id: 0
+  comm_drop_prob: 0.0
+  meas_connections: ['agent_2']
+  agent_update_rate: 5 # [Hz]

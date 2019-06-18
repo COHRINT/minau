@@ -7,6 +7,7 @@ import numpy as np
 from minau.srv import ArmControl, SetHeadingVelocity
 from nav_msgs.msg import Odometry
 import tf
+from pdb import set_trace
 
 class Planner:
 
@@ -25,7 +26,9 @@ class Planner:
         rospy.loginfo(name + " Planner Initialized.")
         self.seq = 0
         if self.planner != 'stopped':
-            self.arm_uav()
+            # Keep looping until we arm the AUV successfully
+            while not self.arm_uav() and not rospy.is_shutdown():
+                rospy.sleep(1.0)
         else:
             rospy.logwarn("Not arming: " + name)
 
@@ -39,9 +42,13 @@ class Planner:
         req = rospy.ServiceProxy(srv_name, ArmControl)
         try:
             res = req()
-            rospy.logfatal(res)
+            if res:
+                return True
+            else:
+                return False
         except rospy.ServiceException as exc:
-            print("No response to " + srv_name)
+            rospy.logwarn("Attempted to arm auv with " + srv_name)
+            return False
         
     def load_twist_dict(self, twist_dict):
         dot_x = float(twist_dict['x'])
@@ -85,7 +92,7 @@ class Planner:
         try:
             req(heading, velocity)
         except rospy.ServiceException as exc:
-            print("No response to " + srv_name)
+            rospy.logwarn("No response to " + srv_name)
 
     def update_auv(self, msg):
         if self.planner == "stopped": # Nothing to do if we're stopped
@@ -131,6 +138,7 @@ def main():
     rospy.loginfo("params found")
     param_name = rospy.search_param('planners/update_freq')
     update_period = 1 / int(rospy.get_param(param_name))
+    
     p = Planner(name, update_period)
     rospy.spin()
     

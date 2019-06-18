@@ -1,7 +1,6 @@
 <launch>
 	<arg name="config_file" default="gazebo_config.yaml" />
-
-	<rosparam command="load" file="$(find cohrint_minau)/params/$(arg config_file)" />
+	<rosparam command="load" file="$(find cohrint_minau)/config/$(arg config_file)" />
 	
 <group ns="bluerov2_0">
 	<node name="point_planner" pkg="cohrint_minau" type="point_planner.py" output="screen" />
@@ -13,8 +12,6 @@
 	<node name="sensor_pub" pkg="cohrint_minau" type="publish_sensors.py" output="screen" />
 </group>
 
-<!--
-
 <group ns="bluerov2_2">
 	<node name="point_planner" pkg="cohrint_minau" type="point_planner.py" output="screen" />
 	<node name="sensor_pub" pkg="cohrint_minau" type="publish_sensors.py" output="screen" />
@@ -24,17 +21,5 @@
 	<node name="point_planner" pkg="cohrint_minau" type="point_planner.py" output="screen" />
 	<node name="sensor_pub" pkg="cohrint_minau" type="publish_sensors.py" output="screen" />
 </group>
-
-<group ns="bluerov2_4">
-	<node name="point_planner" pkg="cohrint_minau" type="point_planner.py" output="screen" />
-	<node name="sensor_pub" pkg="cohrint_minau" type="publish_sensors.py" output="screen" />
-</group>
-
-<group ns="bluerov2_5">
-	<node name="point_planner" pkg="cohrint_minau" type="point_planner.py" output="screen" />
-	<node name="sensor_pub" pkg="cohrint_minau" type="publish_sensors.py" output="screen" />
-</group>
-
--->
 
 </launch>
