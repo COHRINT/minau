@@ -1,12 +1,18 @@
 # minau
 
+Interface repo between et-ddf and uuv simulator
+
 ## Configuration
-Edit appropriate values in params/points.yaml
+Edit appropriate values in config/gazebo_config.yaml
 
 ## Launching
 To run a point simulator
 ```
-roslaunch cohrint_minau points.launch
+roslaunch cohrint_minau bluerovs.launch
+```
+( press play in Gazebo )
+```
+roslaunch cohrint_minau planner.launch
 ```
 
 ## Files
