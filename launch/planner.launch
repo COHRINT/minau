@@ -1,60 +1,47 @@
 <launch>
-	<arg name="sim_config_file" default="gazebo_config.yaml" />
-	<arg name="sensor_config_file" default="sensors.yaml" />
+	<arg name="config_file" default="gazebo_config.yaml" />
+	<rosparam command="load" file="$(find cohrint_minau)/config/$(arg config_file)" />
 
-	<rosparam command="load" file="$(find cohrint_minau)/params/$(arg sim_config_file)" />
-	<rosparam command="load" file="$(find cohrint_minau)/params/$(arg sensor_config_file)" />
-
+	<arg name="log_level" value="DEBUG" />
+	
 <group ns="bluerov2_0">
-	<node name="planner0" pkg="cohrint_minau" type="planner.py" output="screen" />
+	<node name="point_planner" pkg="cohrint_minau" type="point_planner.py" output="screen" />
 	<node name="sensor_pub" pkg="cohrint_minau" type="publish_sensors.py" output="screen" />
-	<node name="comms_module" pkg="cohrint_minau" type="comms.py" />
-	<node name="agent" pkg="cohrint_minau" type="agent_wrapper.py" />
+	<include file="$(find etddf_ros)/launch/agent.launch"> 
+            <arg name="id" value="0" />
+            <arg name="log_level" value="$(arg log_level)" />
+			<arg name="agent_name" value="bluerov2_0" />
+    </include>
 </group>
 
 <group ns="bluerov2_1">
-	<node name="planner1" pkg="cohrint_minau" type="planner.py" output="screen" />
+	<node name="point_planner" pkg="cohrint_minau" type="point_planner.py" output="screen" />
 	<node name="sensor_pub" pkg="cohrint_minau" type="publish_sensors.py" output="screen" />
-	<node name="comms_module" pkg="cohrint_minau" type="comms.py" />
-	<node name="agent" pkg="cohrint_minau" type="agent_wrapper.py" />	
+	<include file="$(find etddf_ros)/launch/agent.launch"> 
+            <arg name="id" value="1" />
+            <arg name="log_level" value="$(arg log_level)" />
+			<arg name="agent_name" value="bluerov2_1" />
+    </include>
 </group>
 
 <group ns="bluerov2_2">
-	<node name="planner2" pkg="cohrint_minau" type="planner.py" output="screen" />
+	<node name="point_planner" pkg="cohrint_minau" type="point_planner.py" output="screen" />
 	<node name="sensor_pub" pkg="cohrint_minau" type="publish_sensors.py" output="screen" />
-	<node name="comms_module" pkg="cohrint_minau" type="comms.py" />
-	<node name="agent" pkg="cohrint_minau" type="agent_wrapper.py" />	
+	<include file="$(find etddf_ros)/launch/agent.launch"> 
+            <arg name="id" value="2" />
+            <arg name="log_level" value="$(arg log_level)" />
+			<arg name="agent_name" value="bluerov2_2" />
+    </include>
 </group>
 
 <group ns="bluerov2_3">
-	<node name="planner3" pkg="cohrint_minau" type="planner.py" output="screen" />
+	<node name="point_planner" pkg="cohrint_minau" type="point_planner.py" output="screen" />
 	<node name="sensor_pub" pkg="cohrint_minau" type="publish_sensors.py" output="screen" />
-	<node name="comms_module" pkg="cohrint_minau" type="comms.py" />
-	<node name="agent" pkg="cohrint_minau" type="agent_wrapper.py" />	
+	<include file="$(find etddf_ros)/launch/agent.launch"> 
+            <arg name="id" value="3" />
+            <arg name="log_level" value="$(arg log_level)" />
+			<arg name="agent_name" value="bluerov2_3" />
+    </include>
 </group>
-
-<!--
-
-<group ns="bluerov2_4">
-	<node name="planner4" pkg="cohrint_minau" type="planner.py" output="screen" />
-	<node name="sensor_pub" pkg="cohrint_minau" type="publish_sensors.py" output="screen" />
-</group>
-
-<group ns="bluerov2_5">
-	<node name="planner5" pkg="cohrint_minau" type="planner.py" output="screen" />
-	<node name="sensor_pub" pkg="cohrint_minau" type="publish_sensors.py" output="screen" />
-</group>
-
-<group ns="bluerov2_6">
-	<node name="planner5" pkg="cohrint_minau" type="planner.py" output="screen" />
-	<node name="sensor_pub" pkg="cohrint_minau" type="publish_sensors.py" output="screen" />
-</group>
-
-<group ns="bluerov2_7">
-	<node name="planner5" pkg="cohrint_minau" type="planner.py" output="screen" />
-	<node name="sensor_pub" pkg="cohrint_minau" type="publish_sensors.py" output="screen" />
-</group>
-
--->
 
 </launch>

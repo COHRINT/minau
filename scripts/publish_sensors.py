@@ -2,7 +2,7 @@
 import rospy
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Float64
-from cohrint_minau.msg import depthMeasurement, usblMeasurement
+from etddf_ros.msg import gpsMeasurement, linrelMeasurement
 from geometry_msgs.msg import Pose
 from decimal import Decimal
 import numpy as np
@@ -30,30 +30,38 @@ class SensorPub:
         self.pose = None
 
         # Publishers
-        self.depth_pub = rospy.Publisher('depth', depthMeasurement, queue_size=10)
-        self.usbl_pub = rospy.Publisher('usbl', usblMeasurement, queue_size=10)
+        # self.depth_pub = rospy.Publisher('depth', depthMeasurement, queue_size=10)
+        # self.usbl_pub = rospy.Publisher('usbl', usblMeasurement, queue_size=10)
+        self.gps_pub = rospy.Publisher('gps',gpsMeasurement,queue_size=10)
+        self.linrel_pub = rospy.Publisher('lin_rel',linrelMeasurement,queue_size=10)
 
         # Timer callbacks
-        depth_rate = 1 / float(rospy.get_param('/sensors/depth_pub_rate', 50))
-        usbl_rate = 1 / float(rospy.get_param('/sensors/usbl_pub_rate', 0.5))
-        self.depth_timer = rospy.Timer(rospy.Duration(depth_rate), self.depth_callback)
-        self.usbl_timer = rospy.Timer(rospy.Duration(usbl_rate), self.usbl_callback)
+        # depth_rate = 1 / float(rospy.get_param('/sensors/depth_pub_rate', 50))
+        # usbl_rate = 1 / float(rospy.get_param('/sensors/usbl_pub_rate', 0.5))
+        # self.depth_timer = rospy.Timer(rospy.Duration(depth_rate), self.depth_callback)
+        # self.usbl_timer = rospy.Timer(rospy.Duration(usbl_rate), self.usbl_callback)
+        gps_rate = 1 / float(rospy.get_param('/sensors/gps_pub_rate', 50))
+        linrel_rate = 1 / float(rospy.get_param('/sensors/lin_rel_pub_rate', 0.5))
+        self.gps_timer = rospy.Timer(rospy.Duration(gps_rate), self.gps_callback)
+        self.linrel_timer = rospy.Timer(rospy.Duration(linrel_rate), self.linrel_callback)
 
         # Noise
         self.noise = rospy.get_param('/sensors/noise',False)
-        self.depth_noise = float(rospy.get_param('/sensors/depth_noise', 0.03))
-        self.angular_noise = float(rospy.get_param('/sensors/angular_noise',1))
-        self.distance_noise = float(rospy.get_param('/sensors/distance_noise', 1.0))
+        # self.depth_noise = float(rospy.get_param('/sensors/depth_noise', 0.03))
+        # self.angular_noise = float(rospy.get_param('/sensors/angular_noise',1))
+        # self.distance_noise = float(rospy.get_param('/sensors/distance_noise', 1.0))
+        self.gps_noise = float(rospy.get_param('/sensors/gps_noise'))
+        self.lin_rel_noise = float(rospy.get_param('/sensors/lin_rel_noise'))
 
         # Resolutions
-        self.dist_res = int(rospy.get_param('/sensors/distance_res', 1))
-        self.angular_res = int(rospy.get_param('/sensors/angular_res', 1))
-        self.depth_res = int(rospy.get_param('/sensors/depth_res', 2))
-        self.pos_res = int(rospy.get_param('/sensors/positioning_res',1))
+        # self.dist_res = int(rospy.get_param('/sensors/distance_res', 1))
+        # self.angular_res = int(rospy.get_param('/sensors/angular_res', 1))
+        # self.depth_res = int(rospy.get_param('/sensors/depth_res', 2))
+        # self.pos_res = int(rospy.get_param('/sensors/positioning_res',1))
         
         rospy.loginfo("Sensor pub for " + name + " initialized")
-        self.depthSeq = 0
-        self.usblSeq = 0
+        self.gpsSeq = 0
+        self.linrelSeq = 0
 
     def pose_callback(self, msg):
         topic = msg._connection_header['topic']
@@ -102,7 +110,61 @@ class SensorPub:
             meas.elevation = round(elev, self.angular_res)
             meas.fit_error = 0
             self.usbl_pub.publish(meas)
-            self.usblSeq += 1            
+            self.usblSeq += 1
+
+    def gps_callback(self,msg):
+        if self.pose == None:
+            return
+        x = self.pose.position.x
+        y = self.pose.position.y
+        z = self.pose.position.z
+        x = self.insert_noise(x, self.gps_noise)
+        y = self.insert_noise(y, self.gps_noise)
+        z = self.insert_noise(z, self.gps_noise)
+        meas = gpsMeasurement()
+        # meas.data = round(depth, self.depth_res)
+
+        meas.x = x
+        meas.y = y
+        meas.z = z
+
+        meas.header.seq = self.gpsSeq
+        meas.header.stamp = rospy.Time.now()
+        # meas.header.frame_id = TODO proper reference frame
+        self.gps_pub.publish(meas)
+        self.gpsSeq += 1
+
+    def linrel_callback(self,msg):
+        rospy.loginfo("Publishing measurement")
+        meas = linrelMeasurement()
+        for auv in self.auvs:
+            if self.auvs[auv] == None or self.pose == None:
+                continue
+
+            # Measurement
+            meas.header.seq = self.linrelSeq
+            meas.header.stamp = rospy.Time.now()
+            # meas.header.frame_id = TODO proper reference frame
+            meas.robot_measured = auv
+            x,y,z = self.get_distance(self.pose.position, self.auvs[auv].pose.pose.position, linear=True)
+            x = self.insert_noise(x, self.lin_rel_noise)
+            y = self.insert_noise(y, self.lin_rel_noise)
+            z = self.insert_noise(z, self.lin_rel_noise)
+            # az, elev = self.get_bearing(self.pose,self.auvs[auv].pose.pose.position)
+            # az = self.insert_noise(az, self.angular_noise)
+            # elev = self.insert_noise(elev, self.angular_noise)
+            # # rospy.loginfo("Publishing dist to " + auv)       
+            # meas.range = round(_range, self.dist_res)
+            # meas.azimuth = round(az, self.angular_res)
+            # meas.elevation = round(elev, self.angular_res)
+            # meas.fit_error = 0
+
+            meas.x = x
+            meas.y = y
+            meas.z = z
+
+            self.linrel_pub.publish(meas)
+            self.linrelSeq += 1
 
     def insert_noise(self, meas, noise_std):
         if self.noise:
@@ -110,8 +172,8 @@ class SensorPub:
         else:
             return meas
             
-    def get_distance(self, point1, point2):
-	"""
+    def get_distance(self, point1, point2, linear=False):
+        """
         Returns the distance between 2 points
         
         Parameters
@@ -128,8 +190,11 @@ class SensorPub:
         x2, y2, z2 = point2.x, point2.y, point2.z
         p1_arr = np.array([x1, y1, z1])
         p2_arr = np.array([x2, y2, z2])
-        diff = p2_arr - p1_arr
-        return np.linalg.norm(diff)
+        diff = -p2_arr + p1_arr
+        if linear:
+            return diff
+        else:
+            return np.linalg.norm(diff)
 
     def get_bearing(self, pose1, point2):
         """
@@ -208,12 +273,15 @@ def test1():
 
 def main():
     rospy.init_node('sensor_pub', anonymous=True)
-    ns = rospy.get_namespace()
-    active_auvs = rospy.get_param('/active_auvs')
-    for auv in active_auvs:
-        if auv in ns:
-            name = auv
-            break
+    
+    name = rospy.get_namespace().split('/')[1]
+    # rospy.loginfo(ns)
+    # name = rospy.get_param('agent_name')
+    # rospy.loginfo(name)
+    
+    active_auvs = rospy.get_param('meas_connections')
+    active_auvs.append(name)
+    
     sp = SensorPub(name, active_auvs)
     rospy.spin()
 
