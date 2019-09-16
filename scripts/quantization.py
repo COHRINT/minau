@@ -11,7 +11,7 @@ import math
 import yaml
 import numpy as np
 from decimal import Decimal, getcontext
-getcontext().prec = 50
+getcontext().prec = 500
 
 class Quantizer:
     """
@@ -171,9 +171,8 @@ class Quantizer:
         diag_range = [self.cfg[element]['variance_range'] for element in element_types]
         diag_resolution = [self.cfg[element]['variance_resolution'] for element in element_types]
 
-        offdiag_range = [self.cfg['covar_offdiag_range'] for element in element_types]
-        offdiag_resolution = [self.cfg['covar_offdiag_resolution'] for element in element_types]
-
+        offdiag_range = [self.cfg['covar_offdiag_range'] for i in range(0,int(0.5*len(element_types)*(len(element_types)-1)))]
+        offdiag_resolution = [self.cfg['covar_offdiag_resolution'] for i in range(0,int(0.5*len(element_types)*(len(element_types)-1)))]
         # first compute number of bins
         mean_num_bins = []
         for i in range(0,len(mean_range)):
@@ -254,8 +253,8 @@ class Quantizer:
         diag_range = [self.cfg[element]['variance_range'] for element in element_types]
         diag_resolution = [self.cfg[element]['variance_resolution'] for element in element_types]
 
-        offdiag_range = [self.cfg['covar_offdiag_range'] for element in element_types]
-        offdiag_resolution = [self.cfg['covar_offdiag_resolution'] for element in element_types]
+        offdiag_range = [self.cfg['covar_offdiag_range'] for i in range(0,int(0.5*len(element_types)*(len(element_types)-1)))]
+        offdiag_resolution = [self.cfg['covar_offdiag_resolution'] for i in range(0,int(0.5*len(element_types)*(len(element_types)-1)))]
 
         # first compute number of bins
         mean_num_bins = []
@@ -400,16 +399,25 @@ if __name__ == "__main__":
 
     print('---------------------------------')
 
-    state1_mean = [-0.89, 0.2345,0.9]
-    state1_cov = np.array([[1,0.1,-0.674],
-                    [0.1,1.5,0.216],
-                    [-0.674,0.216,1.75]])
-    element_types = ['position','velocity','angle']
+    # state1_mean = [-0.89, 0.2345,0.9]
+    # state1_cov = np.array([[1,0.1,-0.674],
+    #                 [0.1,1.5,0.216],
+    #                 [-0.674,0.216,1.75]])
+    # element_types = ['position','velocity','angle']
     
     # state1_mean = [103.10290923,5.1093]
     # state1_cov = np.array([[1003,0.030982],
     #                         [0.030982,25.21098]])
     # element_types = ['position','velocity']
+
+    state1_mean = [-0.89, 0.2345,10.20912,1.302,-3.4311,-0.5922]
+    state1_cov = np.array([ [1,0.1,-0.674,0.2198,-0.129,1.1901],
+                            [0.1,10.5,0.291,0.2198,0.1,0.1],
+                            [-0.674,0.291,20.10909,0.2198,-0.129,1.1901],
+                            [0.2198,0.2198,0.2198,5.292,-0.129,0.2198],
+                            [-0.129,0.1,-0.129,-0.129,50.309,1.1901],
+                            [1.1901,0.1,0.2198,0.2198,1.1901,3.290]])
+    element_types = ['position','velocity','position','velocity','position','velocity']
 
     print(state1_mean)
     print(state1_cov)

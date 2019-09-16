@@ -17,13 +17,13 @@ meas_types:
 
 # parameters for covariance off diagonal terms --> mean and diagonal are contained in element specifications
 covar_offdiag_range: [-5,5]
-covar_offdiag_resolution: 0.00001
+covar_offdiag_resolution: 0.0001
 covar_offdiag_num_bins: 100
 covar_offdiag_center: 0
 
 position:
   range: [-200,200]   # nominal operating area
-  resolution: 0.0001  # resolution for uniform quantization
+  resolution: 0.001  # resolution for uniform quantization
   num_bins: 100       # number of allowed bins for adaptive scaling --> determines scale factor for adaptive binning
   center: 0           # center of expected values for adaptive binning
   variance_range: [0,10000]
@@ -33,7 +33,7 @@ position:
 
 velocity:
   range: [-5,5]       # nominal operating area
-  resolution: 0.00001 # resolution for uniform quantization
+  resolution: 0.001 # resolution for uniform quantization
   num_bins: 100       # number of allowed bins for adaptive scaling --> determines scale factor for adaptive binning
   center: 0           # center of expected values for adaptive binning
   variance_range: [0,50]
