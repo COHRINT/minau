@@ -10,7 +10,8 @@ import os
 import math
 import yaml
 import numpy as np
-from decimal import Decimal
+from decimal import Decimal, getcontext
+getcontext().prec = 50
 
 class Quantizer:
     """
@@ -82,7 +83,7 @@ class Quantizer:
         # we use the following method to avoid floating point error
         num_bins = []
         for i in range(0,len(measurement_range)):
-            num_bins_element = int((measurement_range[i][1]-measurement_range[i][0])*(10**(-1*np.log10(measurement_resolution[i]))))
+            num_bins_element = Decimal(measurement_range[i][1]-measurement_range[i][0])*(Decimal(10**(-1*np.log10(measurement_resolution[i]))))
             num_bins.append(num_bins_element)
         # num_bins = [int(num_bins) for i in range(0,len(measurement))]
 
@@ -91,10 +92,9 @@ class Quantizer:
 
         # compute config number
         config_num = self.bin2config(bin_list,num_bins)
-        print(config_num)
 
         # convert to binary
-        bits = bin(long(config_num)) 
+        bits = bin(int(config_num))
 
         return_vals = []
         if bits_flag: return_vals.append(bits)
@@ -106,22 +106,22 @@ class Quantizer:
         """
         Convert quantized measurement to measurement using range and resolution.
         """
+        # convert from bits to configuration number
+        if config_num is None:
+            config_num = long(bitstring,base=2)
+        config_num = Decimal(config_num)
+
         # retrieve measurement parameters
         if type_ in self.cfg['meas_types']:
             element_types = self.cfg['meas_types'][type_]
             measurement_range = [self.cfg[element]['range'] for element in element_types]
             measurement_resolution = [self.cfg[element]['resolution'] for element in element_types]
 
-        # convert from bits to configuration number
-        if config_num is None:
-            config_num = long(bitstring,base=2)
-        config_num = Decimal(config_num)
-
         # compute number of bins --> note that instead of dividing by the resolution,
         # we use the following method to avoid floating point error
         num_bins = []
         for i in range(0,len(measurement_range)):
-            num_bins_element = int((measurement_range[i][1]-measurement_range[i][0])*(10**(-1*np.log10(measurement_resolution[i]))))
+            num_bins_element = Decimal(measurement_range[i][1]-measurement_range[i][0])*(Decimal(10**(-1*np.log10(measurement_resolution[i]))))
             num_bins.append(num_bins_element)
         # num_bins = [int(num_bins) for i in range(0,num_els)]
 
@@ -133,43 +133,173 @@ class Quantizer:
 
         return measurement_list
 
-    def state2quant(self,state_est,cov,est_range,est_resolution,cov_diag_range,
-        cov_diag_resolution,cov_offdiag_range,cov_offdiag_resolution):
+    def state2quant(self,mean_vec,cov,element_types,mean_range=None,mean_resolution=None,diag_range=None,
+        diag_resolution=None,offdiag_range=None,offdiag_resolution=None,bits_flag=True,config_flag=False):
         """
-        Convert state estimate to quantized representation using passed ranges and resolutions.
+        Convert state estimate to quantized representation using config values or 
+        passed ranges and resolutions.
+
+        Parameters
+        ----------
+        mean_vec
+            mean vector of state estimate -- n x 1 numpy array
+        cov
+            full covariance matrix of estimate -- n x n numpy array
+        element types
+            n element list of estimate state element types, e.g. ['position','velocity']
+        mean_range : [default None]
+            range of values for mean vector
+        mean_resolution : [default None]
+
+        diag_range : [default None]
+
+        diag_resolution : [default None]
+
+        offdiag_range : [default None]
+
+        offdiag_resolution : [default None]
+
+        bits_flag : [default True]
+            return bitstring of quantized state estimate
+        config_flag : [default False]
+            return integer config number of quantized state estimate
         """
+        # get ranges and resolutions from config
+        mean_range = [self.cfg[element]['range'] for element in element_types]
+        mean_resolution = [self.cfg[element]['resolution'] for element in element_types]
+        
+        diag_range = [self.cfg[element]['variance_range'] for element in element_types]
+        diag_resolution = [self.cfg[element]['variance_resolution'] for element in element_types]
+
+        offdiag_range = [self.cfg['covar_offdiag_range'] for element in element_types]
+        offdiag_resolution = [self.cfg['covar_offdiag_resolution'] for element in element_types]
+
         # first compute number of bins
-        state_bins = (est_range[1]-est_range[0])*(10**(-1*np.log10(est_resolution)))
-        diag_bins = (cov_diag_range[1]-cov_diag_range[0])*(10**(-1*np.log10(cov_diag_resolution)))
-        offdiag_bins = (cov_offdiag_range[1]-cov_offdiag_range[0])*(10**(-1*np.log10(cov_offdiag_resolution)))
+        mean_num_bins = []
+        for i in range(0,len(mean_range)):
+            mean_bins_element = int((mean_range[i][1]-mean_range[i][0])*(10**(-1*np.log10(mean_resolution[i]))))
+            mean_num_bins.append(mean_bins_element)
+
+        diag_num_bins = []
+        for i in range(0,len(diag_range)):
+            diag_bins_element = int((diag_range[i][1]-diag_range[i][0])*(10**(-1*np.log10(diag_resolution[i]))))
+            diag_num_bins.append(diag_bins_element)
+
+        offdiag_num_bins = []
+        for i in range(0,len(offdiag_range)):
+            offdiag_bins_element = int((offdiag_range[i][1]-offdiag_range[i][0])*(10**(-1*np.log10(offdiag_resolution[i]))))
+            offdiag_num_bins.append(offdiag_bins_element)
 
         # extract diagonal cov elements
         diag_els = np.diag(cov)
         # extract off-diagonal, upper-triangular elements
         offdiag_els = np.extract(np.triu(1-np.eye(cov.shape[0])),cov)
 
-        # compute bin number for each state element
-        state_bin_list = self.vals2bins(state_est,est_range,est_resolution)
-        diag_bin_list = self.vals2bins(diag_els,cov_diag_range,cov_diag_resolution)
-        offdiag_bin_list = self.vals2bins(offdiag_els,cov_offdiag_range,cov_offdiag_resolution)
+        # combine both elements and max number of bin lists of mean, diagonal, and off-diagonal
+        elements = np.concatenate((mean_vec,diag_els,offdiag_els))
+        element_resolution = mean_resolution + diag_resolution + offdiag_resolution
+        element_range = mean_range + diag_range + offdiag_range
+        num_bins = mean_num_bins + diag_num_bins + offdiag_num_bins
 
-        # create full list of all bin numbers, and list of corresponding resolutions
-        state_bin_num = state_bins*np.ones_like(state_bin_list) 
-        diag_bin_num = diag_bins*np.ones_like(diag_bin_list)
-        offdiag_bin_num = offdiag_bins*np.ones_like(offdiag_bin_list)
-        bin_num = np.concatenate((state_bin_num,diag_bin_num,offdiag_bin_num))
+        bin_list = self.vals2bins(elements,element_range,element_resolution)
 
-        bin_list = np.concatenate((state_bin_list,diag_bin_list,offdiag_bin_list))
-
-        config_num = self.bin2config(bin_list,bin_num)
+        config_num = self.bin2config(bin_list,num_bins)
 
         # convert to bitstring
         bits = bin(long(config_num))
 
-        return bits
+        return_vals = []
+        if bits_flag: return_vals.append(bits)
+        if config_flag: return_vals.append(config_num)
+        
+        return return_vals
 
-    def quant2state(self):
-        pass
+    def quant2state(self,bitstring,num_els,element_types,mean_range=None,mean_resolution=None,
+                    diag_range=None,diag_resolution=None,offdiag_range=None,offdiag_resolution=None,config_num=None):
+        """
+        Convert quantized state to state using config values or passed ranges and resolutions.
+
+        Parameters
+        ----------
+        bitstring
+            bitstring of quantized measurements
+        num_els
+            number of elements to convert to values
+        element_types
+            state element types
+        mean_range : [default None]
+            range of values for mean vector
+        mean_resolution : [default None]
+
+        diag_range : [default None]
+
+        diag_resolution : [default None]
+
+        offdiag_range : [default None]
+
+        offdiag_resolution : [default None]
+
+        config_num : [default False]
+            use integer config number instead of bistring
+        """
+        # convert from bits to configuration number
+        if config_num is None:
+            config_num = int(bitstring,base=2)
+        config_num = Decimal(value=config_num)
+
+        # get ranges and resolutions from config
+        mean_range = [self.cfg[element]['range'] for element in element_types]
+        mean_resolution = [self.cfg[element]['resolution'] for element in element_types]
+        
+        diag_range = [self.cfg[element]['variance_range'] for element in element_types]
+        diag_resolution = [self.cfg[element]['variance_resolution'] for element in element_types]
+
+        offdiag_range = [self.cfg['covar_offdiag_range'] for element in element_types]
+        offdiag_resolution = [self.cfg['covar_offdiag_resolution'] for element in element_types]
+
+        # first compute number of bins
+        mean_num_bins = []
+        for i in range(0,len(mean_range)):
+            mean_bins_element = int((mean_range[i][1]-mean_range[i][0])*(10**(-1*np.log10(mean_resolution[i]))))
+            mean_num_bins.append(mean_bins_element)
+
+        diag_num_bins = []
+        for i in range(0,len(diag_range)):
+            diag_bins_element = int((diag_range[i][1]-diag_range[i][0])*(10**(-1*np.log10(diag_resolution[i]))))
+            diag_num_bins.append(diag_bins_element)
+
+        offdiag_num_bins = []
+        for i in range(0,len(offdiag_range)):
+            offdiag_bins_element = int((offdiag_range[i][1]-offdiag_range[i][0])*(10**(-1*np.log10(offdiag_resolution[i]))))
+            offdiag_num_bins.append(offdiag_bins_element)
+
+        # combine both elements and max number of bin lists of mean, diagonal, and off-diagonal
+        element_resolution = mean_resolution + diag_resolution + offdiag_resolution
+        element_range = mean_range + diag_range + offdiag_range
+        num_bins = mean_num_bins + diag_num_bins + offdiag_num_bins
+
+        # compute bin numbers
+        bin_num_list = self.config2bins(config_num, num_els, num_bins)
+
+        # compute values
+        values = self.bins2vals(bin_num_list,element_resolution,element_range)
+
+        # recover mean and covariance
+        mean_vec = np.array(values[:len(element_types)])
+        mean_vec = np.atleast_2d(mean_vec)
+
+        diag_vec = values[len(element_types):2*len(element_types)]
+        cov = np.diag(diag_vec)
+
+        offdiag_vec = values[2*len(element_types):]
+        off_diag_els_u = np.triu(1-np.eye(cov.shape[0]))
+        off_diag_els_u = off_diag_els_u.astype(bool)
+        off_diag_els_l = np.tril(1-np.eye(cov.shape[0]))
+        off_diag_els_l = off_diag_els_l.astype(bool)
+        cov[off_diag_els_u] = offdiag_vec
+        cov[off_diag_els_l] = offdiag_vec
+
+        return mean_vec, cov
 
     def vals2bins(self, vals, range_, resolution):
         """
@@ -184,16 +314,15 @@ class Quantizer:
             elif el > range_[i][1]:
                 el = range_[i][1]
                 print('Warning: Element is outside allowable range, setting to max.')
+                print(i,el)
 
             # determine rounding method (depends on if resolution is smaller than 1)
             if resolution[i] < 1:
                 # shift range to 0, then round to resolution
                 rounded = round(el-range_[i][0],int(abs(np.log10(resolution[i]))))
-                # print('rounded: {}'.format(rounded))
-                bin_num = rounded * (1/resolution[i])
+                bin_num = rounded * (10**(-1*np.log10(resolution[i])))
                 bin_num_list.append((int(bin_num)))
         
-        print(bin_num_list)
         return bin_num_list
 
     def bin2config(self, bin_num_list, num_bins):
@@ -201,13 +330,13 @@ class Quantizer:
         Compute configuration number from list of element bin numbers and total
         number of possible bins for each element.
         """
-        config_num = bin_num_list[0]
+        config_num = Decimal(bin_num_list[0])
 
         for i in range(1,len(bin_num_list)):
-            prod_val = 1
+            prod_val = Decimal(1)
             for j in range(1,i+1):
-                prod_val *= num_bins[j-1]
-            config_num += prod_val*(bin_num_list[i]-1)
+                prod_val *= Decimal(num_bins[j-1])
+            config_num += prod_val*(Decimal(bin_num_list[i])-Decimal(1))
 
         return config_num
 
@@ -215,17 +344,11 @@ class Quantizer:
         """
         Convert from received configuration number to bin numbers.
         """
-        # reverse order of max bin sizes
-        # num_bins.reverse()
-        print(num_bins)
-
         bin_num_list = []
         for i in range(1,num_els+1):
             if i != num_els:
                 bin_prod = Decimal(1)
                 for j in range(0,len(num_bins)-i):
-                    print(i)
-                    print(num_bins[j])
                     bin_prod *= Decimal(num_bins[j])
                 bin_num = Decimal(math.floor(config_num/bin_prod)) + Decimal(1)
                 config_num = config_num - bin_prod*(Decimal(bin_num)-Decimal(1))
@@ -233,7 +356,6 @@ class Quantizer:
                 bin_num = config_num
             bin_num_list.append(bin_num)
 
-        print(bin_num_list)
         return bin_num_list
 
     def bins2vals(self, bins, val_resolution, val_range):
@@ -275,3 +397,27 @@ if __name__ == "__main__":
     print(bits[0])
     meas_decoded = q.quant2meas(bits[0],len(meas),type_=meas_type)
     print(meas_decoded)
+
+    print('---------------------------------')
+
+    state1_mean = [-0.89, 0.2345,0.9]
+    state1_cov = np.array([[1,0.1,-0.674],
+                    [0.1,1.5,0.216],
+                    [-0.674,0.216,1.75]])
+    element_types = ['position','velocity','angle']
+    
+    # state1_mean = [103.10290923,5.1093]
+    # state1_cov = np.array([[1003,0.030982],
+    #                         [0.030982,25.21098]])
+    # element_types = ['position','velocity']
+
+    print(state1_mean)
+    print(state1_cov)
+
+    bits = q.state2quant(state1_mean,state1_cov,element_types)
+    print(bits[0])
+    print(len(bits[0]))
+    num_els = int(len(element_types) + 0.5*len(element_types)*(len(element_types)+1))
+    mean,cov = q.quant2state(bits[0],num_els,element_types)
+    print(mean)
+    print(cov)
