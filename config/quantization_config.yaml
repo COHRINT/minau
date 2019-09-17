@@ -1,7 +1,7 @@
 # Quantization configuration
 
 # quantization types --> uniform discretization, adaptive binning w/ f(x)=x^3, etc.
-quant_types: ['uniform','x3','x5']
+quant_types: ['uniform','x2','x3','x5']
 
 # number of available bits
 available_bits: 200
@@ -29,7 +29,7 @@ position:
   variance_range: [0,10000]
   variance_resolution: 0.001
   variance_num_bins: 100
-  variance_center: 100
+  variance_center: 50
 
 velocity:
   range: [-5,5]       # nominal operating area
@@ -39,7 +39,7 @@ velocity:
   variance_range: [0,50]
   variance_resolution: 0.001
   variance_num_bins: 100
-  variance_center: 10
+  variance_center: 20
 
 angle:
   range: [0,6.28318530718]  # 0-2pi rad, # nominal operating area
@@ -65,8 +65,8 @@ range:
   range: [0,500]      # nominal operating area
   resolution: 0.0001  # resolution for uniform quantization
   num_bins: 100       # number of allowed bins for adaptive scaling --> determines scale factor for adaptive binning
-  center: 10          # center of expected values for adaptive binning
+  center: 100          # center of expected values for adaptive binning
   variance_range: [0,10000]
   variance_resolution: 0.0001
   variance_num_bins: 100
-  variance_center: 100
+  variance_center: 50
