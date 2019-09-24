@@ -25,8 +25,8 @@ class Quantizer:
     Parameters
     ----------
     quantizer_fxn
-        string name of desired quantization function, e.g. uniform, x^3 binning, etc.
-        Fxns: uniform, x3 (f(x)=x^3), x5 (f(x) = x^5)
+        string name of desired quantization function, e.g. uniform, x^2 binning, etc.
+        Fxns: uniform, piecewise x2 (f(x)=ax^2 + bx + c)
     config_path
         path to yaml config file specifying quantization function parameters and
         measurement and state encoding parameters.
@@ -53,7 +53,8 @@ class Quantizer:
 
     def meas2quant(self,measurement,type_=None,measurement_range=None,measurement_resolution=None,bits_flag=True,config_flag=False):
         """
-        Convert measurement into quantized representation using passed range and resolution.
+        Convert measurement into quantized representation using parameters
+        from config or passed.
 
         Parameters
         ----------
@@ -93,22 +94,15 @@ class Quantizer:
             for i in range(0,len(measurement_range)):
                 num_bins_element = Decimal(measurement_range[i][1]-measurement_range[i][0])*(Decimal(10**(-1*np.log10(measurement_resolution[i]))))
                 num_bins.append(num_bins_element)
-            # num_bins = [int(num_bins) for i in range(0,len(measurement))]
             quantization_params = {'resolution': measurement_resolution, 'range': measurement_range, 'num_bins': num_bins}
         elif self.quantizer_fxn == 'x2':
             # for adaptive binning, we have the number of bins already, and
             # need to compute the scaling on the function using the range and
             # number of bins
-            # scale_list = [measurement_range[i][1]/((measurement_num_bins[i])**3) for i in range(0,len(measurement_range))]
-            print(measurement_range)
             quantization_params = {'range': measurement_range, 'center': measurement_center, 'num_bins': measurement_num_bins}
-
-            # print(scale_list)
 
         # compute bin for each element
         bin_list = self.vals2bins(measurement,quantization_params)
-
-        # print(bin_list)
 
         # compute config number
         config_num = self.bin2config(bin_list,quantization_params['num_bins'])
@@ -125,6 +119,20 @@ class Quantizer:
     def quant2meas(self,bitstring,num_els,type_=None,measurement_range=None,measurement_resolution=None,config_num=None):
         """
         Convert quantized measurement to measurement using range and resolution.
+
+        Parameters
+        ----------
+        bitstring
+            bits representing configuration number
+        num_els
+            expected number of elements for message
+        type_
+            message type (e.g. measurement type)
+        param_struct
+            structure with quantization parameters
+        config_num : [default None]
+            int version of configuration number to use instead of bitstring.
+            Note: this value is used instead of bitstring if both are passed.
         """
         # convert from bits to configuration number
         if config_num is None:
@@ -133,8 +141,6 @@ class Quantizer:
 
         # retrieve measurement parameters
         if type_ in self.cfg['meas_types']:
-            # measurement_range = self.cfg['meas_types'][type_]['range']
-            # measurement_resolution = self.cfg['meas_types'][type_]['resolution']
             element_types = self.cfg['meas_types'][type_]
             if self.quantizer_fxn == 'uniform':
                 measurement_range = [self.cfg[element]['range'] for element in element_types]
@@ -152,13 +158,11 @@ class Quantizer:
             for i in range(0,len(measurement_range)):
                 num_bins_element = Decimal(measurement_range[i][1]-measurement_range[i][0])*(Decimal(10**(-1*np.log10(measurement_resolution[i]))))
                 num_bins.append(num_bins_element)
-            # num_bins = [int(num_bins) for i in range(0,len(measurement))]
             quantization_params = {'resolution': measurement_resolution, 'range': measurement_range, 'num_bins': num_bins}
         elif self.quantizer_fxn == 'x2':
             # for adaptive binning, we have the number of bins already, and
             # need to compute the scaling on the function using the range and
             # number of bins
-            # scale_list = [measurement_range[i][1]/((0.5*measurement_num_bins[i]+measurement_center[i])**3) for i in range(0,len(measurement_range))]
             quantization_params = {'range': measurement_range, 'center': measurement_center, 'num_bins': measurement_num_bins}
 
         # compute bin numbers
@@ -170,10 +174,11 @@ class Quantizer:
         return measurement_list
 
     def state2quant(self,mean_vec,cov,element_types,mean_range=None,mean_resolution=None,diag_range=None,
-        diag_resolution=None,offdiag_range=None,offdiag_resolution=None,bits_flag=True,config_flag=False):
+        diag_resolution=None,offdiag_range=None,offdiag_resolution=None,bits_flag=True,config_flag=False,
+        mean_num_bins=None,diag_num_bins=None,offdiag_num_bins=None,diag_only=False):
         """
         Convert state estimate to quantized representation using config values or 
-        passed ranges and resolutions.
+        passed parameter struct.
 
         Parameters
         ----------
@@ -199,9 +204,11 @@ class Quantizer:
             return bitstring of quantized state estimate
         config_flag : [default False]
             return integer config number of quantized state estimate
+        diag_only : [default False]
+            only quantize the state mean vector and covariance diagonals (for use with diagonalization techniques)
         """
         if self.quantizer_fxn == 'uniform':
-        # get ranges and resolutions from config
+            # get ranges and resolutions from config
             mean_range = [self.cfg[element]['range'] for element in element_types]
             mean_resolution = [self.cfg[element]['resolution'] for element in element_types]
             
@@ -219,12 +226,15 @@ class Quantizer:
             diag_center = [self.cfg[element]['variance_center'] for element in element_types]
             offdiag_center = [self.cfg['covar_offdiag_center'] for i in range(0,int(0.5*len(element_types)*(len(element_types)-1)))]
 
-            mean_num_bins = [self.cfg[element]['num_bins'] for element in element_types]
-            diag_num_bins = [self.cfg[element]['variance_num_bins'] for element in element_types]
-            offdiag_num_bins = [self.cfg['covar_offdiag_num_bins'] for i in range(0,int(0.5*len(element_types)*(len(element_types)-1)))]
+            if mean_num_bins is None:
+                mean_num_bins = [self.cfg[element]['num_bins'] for element in element_types]
+            if diag_num_bins is None:
+                diag_num_bins = [self.cfg[element]['variance_num_bins'] for element in element_types]
+            if offdiag_num_bins is None:
+                offdiag_num_bins = [self.cfg['covar_offdiag_num_bins'] for i in range(0,int(0.5*len(element_types)*(len(element_types)-1)))]
 
         if self.quantizer_fxn == 'uniform':
-        # first compute number of bins
+            # first compute number of bins
             mean_num_bins = []
             for i in range(0,len(mean_range)):
                 mean_bins_element = int((mean_range[i][1]-mean_range[i][0])*(10**(-1*np.log10(mean_resolution[i]))))
@@ -240,24 +250,27 @@ class Quantizer:
                 offdiag_bins_element = int((offdiag_range[i][1]-offdiag_range[i][0])*(10**(-1*np.log10(offdiag_resolution[i]))))
                 offdiag_num_bins.append(offdiag_bins_element)
 
-            element_resolution = mean_resolution + diag_resolution + offdiag_resolution
-            element_range = mean_range + diag_range + offdiag_range
-            num_bins = mean_num_bins + diag_num_bins + offdiag_num_bins
+            element_resolution = mean_resolution + diag_resolution #+ offdiag_resolution
+            element_range = mean_range + diag_range #+ offdiag_range
+            num_bins = mean_num_bins + diag_num_bins #+ offdiag_num_bins
+
+            if not diag_only:
+                element_resolution += offdiag_resolution
+                element_range += offdiag_range
+                num_bins += offdiag_num_bins
 
             quantization_params = {'resolution': element_resolution, 'range': element_range, 'num_bins': num_bins}
 
         elif self.quantizer_fxn == 'x2':
-            # for adaptive binning, we have the number of bins already, and
-            # need to compute the scaling on the function using the range and
-            # number of bins
-            # mean_scale_list = [mean_range[i][1]/((0.5*mean_num_bins[i]+mean_center[i])**3) for i in range(0,len(mean_range))]
-            # diag_scale_list = [diag_range[i][1]/((0.5*diag_num_bins[i]+diag_center[i])**3) for i in range(0,len(diag_range))]
-            # offdiag_scale_list = [offdiag_range[i][1]/((0.5*offdiag_num_bins[i]+offdiag_center[i])**3) for i in range(0,len(offdiag_range))]
+            # combine the parameters from mean, diagonal, and off-diagonal
+            element_range = mean_range + diag_range #+ offdiag_range
+            element_center = mean_center + diag_center #+ offdiag_center
+            element_num_bins = mean_num_bins + diag_num_bins #+ offdiag_num_bins
 
-            # element_scale_list = mean_scale_list + diag_scale_list + offdiag_scale_list
-            element_range = mean_range + diag_range + offdiag_range
-            element_center = mean_center + diag_center + offdiag_center
-            element_num_bins = mean_num_bins + diag_num_bins + offdiag_num_bins
+            if not diag_only:
+                element_range += offdiag_range
+                element_center += offdiag_center
+                element_num_bins += offdiag_num_bins
 
             quantization_params = {'range': element_range, 'center': element_center, 'num_bins': element_num_bins}
 
@@ -267,11 +280,11 @@ class Quantizer:
         offdiag_els = np.extract(np.triu(1-np.eye(cov.shape[0])),cov)
 
         # combine both elements and max number of bin lists of mean, diagonal, and off-diagonal
-        elements = np.concatenate((mean_vec,diag_els,offdiag_els))
+        elements = np.concatenate((mean_vec,diag_els))
+        if not diag_only:
+            elements = np.concatenate((elements,offdiag_els))
 
         bin_list = self.vals2bins(elements,quantization_params)
-
-        print(bin_list)
 
         config_num = self.bin2config(bin_list,quantization_params['num_bins'])
 
@@ -285,7 +298,8 @@ class Quantizer:
         return return_vals
 
     def quant2state(self,bitstring,num_els,element_types,mean_range=None,mean_resolution=None,
-                    diag_range=None,diag_resolution=None,offdiag_range=None,offdiag_resolution=None,config_num=None):
+                    diag_range=None,diag_resolution=None,offdiag_range=None,offdiag_resolution=None,config_num=None,
+                    mean_num_bins=None,diag_num_bins=None,offdiag_num_bins=None,diag_only=False):
         """
         Convert quantized state to state using config values or passed ranges and resolutions.
 
@@ -318,7 +332,7 @@ class Quantizer:
         config_num = Decimal(value=config_num)
 
         if self.quantizer_fxn == 'uniform':
-        # get ranges and resolutions from config
+            # get ranges and resolutions from config
             mean_range = [self.cfg[element]['range'] for element in element_types]
             mean_resolution = [self.cfg[element]['resolution'] for element in element_types]
             
@@ -336,12 +350,15 @@ class Quantizer:
             diag_center = [self.cfg[element]['variance_center'] for element in element_types]
             offdiag_center = [self.cfg['covar_offdiag_center'] for i in range(0,int(0.5*len(element_types)*(len(element_types)-1)))]
 
-            mean_num_bins = [self.cfg[element]['num_bins'] for element in element_types]
-            diag_num_bins = [self.cfg[element]['variance_num_bins'] for element in element_types]
-            offdiag_num_bins = [self.cfg['covar_offdiag_num_bins'] for i in range(0,int(0.5*len(element_types)*(len(element_types)-1)))]
+            if mean_num_bins is None:
+                mean_num_bins = [self.cfg[element]['num_bins'] for element in element_types]
+            if diag_num_bins is None:
+                diag_num_bins = [self.cfg[element]['variance_num_bins'] for element in element_types]
+            if offdiag_num_bins is None:
+                offdiag_num_bins = [self.cfg['covar_offdiag_num_bins'] for i in range(0,int(0.5*len(element_types)*(len(element_types)-1)))]
 
         if self.quantizer_fxn == 'uniform':
-        # first compute number of bins
+            # first compute number of bins
             mean_num_bins = []
             for i in range(0,len(mean_range)):
                 mean_bins_element = int((mean_range[i][1]-mean_range[i][0])*(10**(-1*np.log10(mean_resolution[i]))))
@@ -357,9 +374,14 @@ class Quantizer:
                 offdiag_bins_element = int((offdiag_range[i][1]-offdiag_range[i][0])*(10**(-1*np.log10(offdiag_resolution[i]))))
                 offdiag_num_bins.append(offdiag_bins_element)
 
-            element_resolution = mean_resolution + diag_resolution + offdiag_resolution
-            element_range = mean_range + diag_range + offdiag_range
-            num_bins = mean_num_bins + diag_num_bins + offdiag_num_bins
+            element_resolution = mean_resolution + diag_resolution #+ offdiag_resolution
+            element_range = mean_range + diag_range #+ offdiag_range
+            num_bins = mean_num_bins + diag_num_bins #+ offdiag_num_bins
+
+            if not diag_only:
+                element_resolution += offdiag_resolution
+                element_range += offdiag_range
+                num_bins += offdiag_num_bins
 
             quantization_params = {'resolution': element_resolution, 'range': element_range, 'num_bins': num_bins}
 
@@ -372,16 +394,19 @@ class Quantizer:
             # offdiag_scale_list = [offdiag_range[i][1]/((0.5*offdiag_num_bins[i]+offdiag_center[i])**3) for i in range(0,len(offdiag_range))]
 
             # element_scale_list = mean_scale_list + diag_scale_list + offdiag_scale_list
-            element_range = mean_range + diag_range + offdiag_range
-            element_center = mean_center + diag_center + offdiag_center
-            element_num_bins = mean_num_bins + diag_num_bins + offdiag_num_bins
+            element_range = mean_range + diag_range #+ offdiag_range
+            element_center = mean_center + diag_center #+ offdiag_center
+            element_num_bins = mean_num_bins + diag_num_bins #+ offdiag_num_bins
+
+            if not diag_only:
+                element_range += offdiag_range
+                element_center += offdiag_center
+                element_num_bins += offdiag_num_bins
 
             quantization_params = {'range': element_range, 'center': element_center, 'num_bins': element_num_bins}
 
         # compute bin numbers
         bin_num_list = self.config2bins(config_num, num_els, quantization_params['num_bins'])
-
-        print(bin_num_list)
 
         # compute values
         values = self.bins2vals(bin_num_list,quantization_params)
@@ -393,13 +418,14 @@ class Quantizer:
         diag_vec = values[len(element_types):2*len(element_types)]
         cov = np.diag(diag_vec)
 
-        offdiag_vec = values[2*len(element_types):]
-        off_diag_els_u = np.triu(1-np.eye(cov.shape[0]))
-        off_diag_els_u = off_diag_els_u.astype(bool)
-        off_diag_els_l = np.tril(1-np.eye(cov.shape[0]))
-        off_diag_els_l = off_diag_els_l.astype(bool)
-        cov[off_diag_els_u] = offdiag_vec
-        cov[off_diag_els_l] = offdiag_vec
+        if not diag_only:
+            offdiag_vec = values[2*len(element_types):]
+            off_diag_els_u = np.triu(1-np.eye(cov.shape[0]))
+            off_diag_els_u = off_diag_els_u.astype(bool)
+            off_diag_els_l = np.tril(1-np.eye(cov.shape[0]))
+            off_diag_els_l = off_diag_els_l.astype(bool)
+            cov[off_diag_els_u] = offdiag_vec
+            cov[off_diag_els_l] = offdiag_vec
 
         return mean_vec, cov
 
