@@ -4,12 +4,10 @@ project(cohrint_minau)
 find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
-  message_runtime
 )
 
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES cohrint_minau
 #  CATKIN_DEPENDS rospy
-   CATKIN_DEPENDS message_runtime
 )
