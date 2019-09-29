@@ -13,4 +13,4 @@ bluerov2_0: # investigator1
       point: [-15,-15,2]
     action3:
       point: [-15,-10,2]
-      repeat: 0
+      repeat: 0 # send us back to action0
