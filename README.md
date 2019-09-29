@@ -2,6 +2,24 @@
 
 Interface repo between et-ddf and uuv simulator
 
+# Setup Correct Versions of other repos
+Clone onboard, bluerov2, wamv, uuv_simulator from the Orbit Logic locally hosted repo
+
+Development for more complicated scenarios has been done using the following repo versions
+```
+cd onboard
+git checkout 05cc571f5bc1ad34f1171e2e7ff019f02bd09294
+
+cd bluerov2
+git checkout e205ce6840162ab24decec96182315a37ff0968f
+
+cd uuv_simulator
+git checkout aadee6a6896d4225e3a42326065e291500cdf6ab
+
+cd wamv
+git checkout 4e9f58233f792b9fd23ebfd7fc04040c613632d3
+```
+
 ## Configuration
 Edit appropriate values in config/gazebo_config.yaml
 
