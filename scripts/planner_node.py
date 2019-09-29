@@ -15,11 +15,12 @@ def set_head_depth(heading, depth, setpoint_thresh):
             resp = head_depth(heading, abs(depth))
         except rospy.ServiceException as exc:
             print("Service did not process request: " + str(exc))
+        rospy.sleep(2)
         status = rospy.wait_for_message("uuv_control/control_status", ControlStatus)
         position = status.current_position
         if abs(depth - position.z) < setpoint_thresh:
             break
-        rospy.sleep(2)
+        
 
 def waypoint(point_list, max_vel, setpoint_thresh):
     status = rospy.wait_for_message("uuv_control/control_status", ControlStatus)
@@ -106,15 +107,15 @@ while not rospy.is_shutdown() and action_available:
     action_available = rospy.has_param("planner/action" + str(action_num) + "/point")
 
 # Disarm bluerov
-armed = True
-while not rospy.is_shutdown() and armed:
-    disarm = rospy.ServiceProxy(ns + "uuv_control/disarm_control", DisarmControl)
-    try:
-        resp = disarm()
-        rospy.sleep(2)
-    except rospy.ServiceException as exc:
-        print("Service did not process request: " + str(exc))
-    status = rospy.wait_for_message("uuv_control/control_status", ControlStatus)
-    armed = status.armed
+# armed = True
+# while not rospy.is_shutdown() and armed:
+#     disarm = rospy.ServiceProxy(ns + "uuv_control/disarm_control", DisarmControl)
+#     try:
+#         resp = disarm()
+#         rospy.sleep(2)
+#     except rospy.ServiceException as exc:
+#         print("Service did not process request: " + str(exc))
+#     status = rospy.wait_for_message("uuv_control/control_status", ControlStatus)
+#     armed = status.armed
 
 rospy.loginfo("No more actions available")

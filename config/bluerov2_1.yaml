@@ -1,0 +1,16 @@
+bluerov2_1: # investigator2
+  planner:
+    configurations:
+      max_vel:  1.0
+      setpoint_thresh: 1.5
+
+    # Actions in NED
+    action0: # waypoint
+      point: [10,10,2]
+    action1:
+      point: [10,15,2]
+    action2:
+      point: [15,15,2]
+    action3:
+      point: [15,10,2]
+      repeat: 0

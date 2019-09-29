@@ -1,0 +1,9 @@
+bluerov2_2: # anchor
+  planner:
+    configurations:
+      max_vel:  1.0
+      setpoint_thresh: 1.5
+
+    # Actions in NED
+    action0: # waypoint
+      point: [0,0,2]
