@@ -8,7 +8,7 @@
 ```python
 roslaunch minau minimal_mavros.launch gcs_ip:=192.168.8.213 
 ```
-	- Firstly this will run the *seatrac_fake_gps_gen.py* node which publishes a PoseStamped message to the */mavros/fake_gps/mocap/pose* topic. The fake_gps plugin converts the pose into a GPS message and sends it as a MAVLINK message to the autopilot.
+Firstly this will run the *seatrac_fake_gps_gen.py* node which publishes a PoseStamped message to the */mavros/fake_gps/mocap/pose* topic. The fake_gps plugin converts the pose into a GPS message and sends it as a MAVLINK message to the autopilot.
 
 	- This will launch the *mavros.launch* file. This file looks for and loads two configuration files:
 		- **mavros_apm_pluginlist.yaml**: This pluginlist includes a blacklist of plugins that mavros should ignore and a whitelist of plugins that mavros should load and initialize. Make sure to put the *fake_gps* plugin under the whitelist.
