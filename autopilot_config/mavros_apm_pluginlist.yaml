@@ -1,0 +1,25 @@
+plugin_blacklist:
+# common
+- 3dr_radio
+- actuator_control
+- ftp
+- safety_area
+- setpoint_attitude
+- sys_time
+# extras
+- image_pub
+#- 'mocap_*'
+- px4flow
+- 'vision_*'
+- distance_sensor
+- vibration
+- waypoint
+- altitude
+- wheel_odometry
+
+plugin_whitelist:
+- fake_gps
+- global_position
+- local_position
+#- 'sys_*'
+- 'mocap_*'
