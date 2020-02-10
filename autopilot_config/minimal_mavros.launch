@@ -1,0 +1,17 @@
+<launch>
+<arg name="gcs_ip"/>
+<include file="$(find minau)/launch/mavros.launch">
+      <arg name="fcu_url" value="/dev/ttyACM0:115200"/>
+
+      <!-- Note, if ground control connection is present, telemetry will not output from ArduSub
+           until the ground control connection is established. This is not recommended for
+           autonomous vehicle operations -->
+
+      <!-- Ground control connection (CU configuration) -->
+      <!--<arg name="gcs_url" value="udp://0.0.0.0:9000@192.168.8.244:14550"/>-->
+      <arg name="gcs_url" value="udp://0.0.0.0:9000@$(arg gcs_ip):14550"/>
+
+      <!-- Ground control connection (SPAWAR configuration) -->
+      <!--<arg name="gcs_url" value="udp://0.0.0.0:9000@192.168.1.80:14550"/>-->
+</include>
+</launch>
