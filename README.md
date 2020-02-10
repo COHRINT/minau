@@ -14,6 +14,7 @@ This will launch the *mavros.launch* file. This file looks for and loads two con
 		
 **mavros_apm_config.yaml**: This config file includes config parameters for all the plugins used. The *fake_gps* section has the following important parameters:
 > Data source: (ensure *use_mocap* is set to true and the rest to false)
+
 > Geo Origin: This initializes the sub to a specified lat, long, and alt
 
 - Run QGroundControl Mission Planner (ensure this step is done last)
