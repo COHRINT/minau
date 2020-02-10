@@ -1,34 +1,24 @@
 # minau
 
-Interface repo between et-ddf and uuv simulator
+[TOC]
 
-## Configuration
-Edit appropriate values in config/gazebo_config.yaml
+#### Fake GPS Procedure
+- Source the appropriate ROS workspace
+- Launch the 'minimal_mavros.launch' file with **your** IP address as an argument:
+```python
+roslaunch minau minimal_mavros.launch gcs_ip:=192.168.8.213 
+```
+	- Firstly this will run the *seatrac_fake_gps_gen.py* node which publishes a PoseStamped message to the */mavros/fake_gps/mocap/pose* topic. The fake_gps plugin converts the pose into a GPS message and sends it as a MAVLINK message to the autopilot.
 
-## Launching
-To run a point simulator
-```
-roslaunch cohrint_minau bluerovs.launch
-```
-( press play in Gazebo )
-```
-roslaunch cohrint_minau planner.launch
-```
+	- This will launch the *mavros.launch* file. This file looks for and loads two configuration files:
+		- **mavros_apm_pluginlist.yaml**: This pluginlist includes a blacklist of plugins that mavros should ignore and a whitelist of plugins that mavros should load and initialize. Make sure to put the *fake_gps* plugin under the whitelist.
+		
+		- **mavros_apm_config.yaml**: This config file includes config parameters for all the plugins used. The *fake_gps* section has the following important parameters:
+			- Data source (ensure *use_mocap* is set to true and the rest to false)
+			- Geo Origin: This initializes the sub to a specified lat, long, and alt
 
-## Files
-```
-params/points.yaml
-```
-This file is the main configuration file for the point simulator.
-```
-scripts/point_sim.py 
-```
-This file tracks points in space. An object's velcoity is modifiable via Twist msgs on the 'robot-name/new\_twist' topic. It publishes Odometry msgs to the 'robot-name/pose\_gt' topic. It is configurable under the sim tag in params/points.yaml.
-```
-scripts/point_planner.py
-```
-This file publishes Twist msgs to the 'robot-name/new\_twist' topic. It is configurable via the 'planners' tag and under each robot's configuration tags in the params/points.yaml.
-```
-scripts/publish_sensors.py
-```
-This file simulates measurement readings by publishing Measurement.msg and depth measurements using ground truth data from a simulator. Listens to /robot-name/pose_gt
+- Run QGroundControl Mission Planner (ensure this step is done last)
+	- Ensure the **GPS_TYPE** ardusub parameter is set to **MAV**
+
+#### Running Fake GPS with Ardusub Simulation
+- Follow the instructions in this link: https://ardupilot.org/dev/docs/setting-up-sitl-on-linux.html
